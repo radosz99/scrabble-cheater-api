@@ -1,4 +1,5 @@
 from .anagram import find_anagrams
+import logging
 
 class Algorithm:
     def __init__(self, letters, board):
@@ -183,13 +184,12 @@ class Algorithm:
         bonus=0
         if(len(word)-len(coords[0])==7):
             bonus=50
-        multiplier=1
+        multiplier=1    
         if(coords[5]=='v'):
             for x in range (len(word)):
                 if(len(coords[0])==2):
                     info = self.get_field_value(word[x], coords[1]+x-coords[3],coords[2])
-                    if(word=="ganglion"):
-			print(info)
+                    
                     if(x==coords[3] and x==(coords[3]+coords[6])):
                         sum=sum+info[1]
                     else:
