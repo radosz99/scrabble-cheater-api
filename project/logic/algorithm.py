@@ -2,10 +2,11 @@ from .anagram import find_anagrams
 import logging
 
 class Algorithm:
-    def __init__(self, letters, board):
+    def __init__(self, letters, board, country):
         self.letters = [x.lower() for x in letters]
         self.board = board
         self.create_patterns()
+        self.country = country
 
     def algorithm_engine(self,trie):
         sorted_list_of_valid_words=self.get_valid_words(trie)
@@ -184,13 +185,14 @@ class Algorithm:
         bonus=0
         if(len(word)-len(coords[0])==7):
             bonus=50
-        multiplier=1    
+        multiplier=1
+    
         if(coords[5]=='v'):
             for x in range (len(word)):
                 if(len(coords[0])==2):
                     info = self.get_field_value(word[x], coords[1]+x-coords[3],coords[2])
                     
-                    if(x==coords[3] and x==(coords[3]+coords[6])):
+                    if(x==coords[3] or x==(coords[3]+coords[6])):
                         sum=sum+info[1]
                     else:
                         sum=sum+int(info[0]*info[1])
@@ -207,11 +209,16 @@ class Algorithm:
             for x in range (len(word)):
                 if(len(coords[0])==2):
                     info = self.get_field_value(word[x], coords[1],coords[2]+x-coords[3])
-                    if(x==coords[3] and x==(coords[3]+coords[6])):
+                    if(word=='buffy'):
+                        print(info)
+                        print(word_with_pattern)
+                    if(x==coords[3] or x==(coords[3]+coords[6])):
                         sum=sum+info[1]
                     else:
                         sum=sum+int(info[0]*info[1])
                         multiplier=int(multiplier*int(info[2]))
+                    if(word=='buffy'):
+                        print(f"Literka {word[x]}, suma - {sum}, multi - {multiplier}")
                 else:
                     info = self.get_field_value(word[x], coords[1],coords[2]+x-coords[3])
                     if(x==coords[3]):
@@ -242,22 +249,23 @@ class Algorithm:
         return letter_multiplier,letter_value, word_multiplier
 
     def get_char_value(self,char):
-        #PL
-        # if(char=='a' or char=='e' or char=='i' or char=='n' or char=='o' or char=='r' or char=='s' or char=='w' or char=='z'):
-        #     return 1
-        # if(char=='c' or char=='d' or char=='k' or char=='l' or char=='m' or char=='p' or char=='t' or char=='y'):
-        #     return 2
-        # if(char=='b' or char=='g' or char=='h' or char=='j' or char=='ł' or char=='u'):
-        #     return 3
-        # if(char=='ą' or char=='ę' or char=='f' or char=='ó' or char=='ś' or char=='ż'):
-        #     return 5
-        # if(char=='ć'):
-        #     return 6
-        # if(char=='ń'):
-        #     return 7
-        # if(char=='ź'):
-        #     return 9
-        #ENG
+        # if(self.country=='PL'):
+        #     if(char=='a' or char=='e' or char=='i' or char=='n' or char=='o' or char=='r' or char=='s' or char=='w' or char=='z'):
+        #         return 1
+        #     if(char=='c' or char=='d' or char=='k' or char=='l' or char=='m' or char=='p' or char=='t' or char=='y'):
+        #         return 2
+        #     if(char=='b' or char=='g' or char=='h' or char=='j' or char=='ł' or char=='u'):
+        #         return 3
+        #     if(char=='ą' or char=='ę' or char=='f' or char=='ó' or char=='ś' or char=='ż'):
+        #         return 5
+        #     if(char=='ć'):
+        #         return 6
+        #     if(char=='ń'):
+        #         return 7
+        #     if(char=='ź'):
+        #         return 9
+
+        # if(self.country=='GB'):
         if(char=='a' or char=='e' or char=='i' or char=='n' or char=='o' or char=='r' or char=='s' or char=='t' or char=='u' or char=='l'):
             return 1
         if(char=='g' or char=='d'):

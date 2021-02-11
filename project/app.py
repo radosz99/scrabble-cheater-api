@@ -33,7 +33,7 @@ def add_computer(country):
         board = []
         for line in json_board:
             board.append([line[str(i)] for i in range(15)])
-        algorithm = Algorithm(letters,board)
+        algorithm = Algorithm(letters,board, country)
         best_moves = algorithm.algorithm_engine(get_trie(country))
         return jsonify(best_moves)
     except TypeError as e:
