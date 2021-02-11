@@ -209,16 +209,11 @@ class Algorithm:
             for x in range (len(word)):
                 if(len(coords[0])==2):
                     info = self.get_field_value(word[x], coords[1],coords[2]+x-coords[3])
-                    if(word=='buffy'):
-                        print(info)
-                        print(word_with_pattern)
                     if(x==coords[3] or x==(coords[3]+coords[6])):
                         sum=sum+info[1]
                     else:
                         sum=sum+int(info[0]*info[1])
                         multiplier=int(multiplier*int(info[2]))
-                    if(word=='buffy'):
-                        print(f"Literka {word[x]}, suma - {sum}, multi - {multiplier}")
                 else:
                     info = self.get_field_value(word[x], coords[1],coords[2]+x-coords[3])
                     if(x==coords[3]):
