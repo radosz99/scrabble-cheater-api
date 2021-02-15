@@ -1,6 +1,14 @@
 # Table of Contents
 - [General info](#desc)  
+- [Endpoints](#endpoints)  
+  - [Get best move (GET)](#best)  
+  - [Check move correctness (GET)](#corr)  
 - [Run](#run)  
+  - [Docker image](#docker)  
+  - [Gunicorn server](#gunicorn)  
+  - [Flask app](#flask)
+  
+  
 - [Algorithm](#alg)  
   - [Patterns](#pat)  
     - [Right angle](#ang)  
@@ -16,17 +24,115 @@
 <a name="desc"></a>
 # General info
 
-API for getting best move in Scrabble.
+API for getting best move and checking move correctness in Scrabble in chosen dictionary. Built in Python with Flask. Deployed on Azure Linux VM.
+
+
+<a name="endpoints"></a>
+# Endpoints
+Currenty supported countries: `GB`.
+<a name="best"></a>
+## Get best move (GET)
+
+### URL
+```
+http://23.102.185.73:8000/best_move/<country>
+```
+### Request body
+To get possibly best move you must pass two object:
+- *letters* - [string] letters from your rack that you can put on the board,
+- *board* - [list of json object] state of the board, json object (total 15) denotive rows with keys from 0 to 14 whos value is appropriate cell from each column in this row. Space means no letter in this cell!
+```
+{
+  "letters": "abcdefg",
+  "board": [
+        {"0":" ", "1": " ", "2": " ", "3": " ", "4": " ", "5": " ", "6": " ", "7": "a", "8": "b", "9": "c", "10": " ", "11": " ", "12": " ", "13": " ", "14": " "},
+        {"0":" ", "1": " ", "2": " ", "3": " ", "4": " ", "5": " ", "6": " ", "7": "d", "8": " ", "9": " ", "10": " ", "11": " ", "12": " ", "13": " ", "14": " "},
+        ...
+        {"0":" ", "1": " ", "2": " ", "3": " ", "4": " ", "5": " ", "6": " ", "7": " ", "8": " ", "9": " ", "10": " ", "11": " ", "12": " ", "13": " ", "14": " "},
+        {"0":" ", "1": " ", "2": " ", "3": " ", "4": " ", "5": " ", "6": " ", "7": " ", "8": " ", "9": " ", "10": " ", "11": " ", "12": " ", "13": " ", "14": " "}
+        ]
+}
+```
+
+### Response from the server
+Server returns quantity of valid moves and their details:
+- *coordinate* - coordinates of first letter in move according to [Wikipedia notation](https://en.wikipedia.org/wiki/Scrabble#Notation_system),
+- *points* - points obtained in this move,
+- *word* - word stacked in result of this move.
+```
+{
+  "quantity": 38,
+  "words": [
+        {"coordinate":"H6","points":2,"word":"us"},
+        {"coordinate":"H7","points":2,"word":"su"},
+        ...
+        {"coordinate":"6D","points":42,"word":"formula"}
+        ]
+}
+```
+
+<a name="corr"></a>
+## Check move correctness (GET)
+
+### URL
+```
+http://23.102.185.73:8000/check_word/<country>
+```
+### Request body
+To check if word is valid in chosen dictionary you must pass:
+- *words* - [list of strings] words to check.
+```
+{
+  "words": [
+        apple,
+        juice,
+        car
+        ]
+}
+```
+
+### Response from the server
+Server returns status and details for all words:
+- *status* - false if any of words is invalid,
+- *details* - information whether word exists.
+
+```
+{
+  "status":false,
+  "details":[
+          {"exist":false,"word":"xdddd"},
+          {"exist":true,"word":"apple"}
+          ]
+}
+```
 
 <a name="run"></a>
 # Run
 
+
+<a name="docker"></a>
+## Docker image
 ```
 $ git clone https://github.com/radosz99/scrabble-algorithm.git
 $ docker build -t scrabble_alg .
 $ docker run -p 5000:5000 scrabble_alg
 ```
 
+<a name="gunicorn"></a>
+## Gunicorn daemon server (Linux)
+From the root folder:
+``` 
+$ chmod +x gunicorn_starter.sh
+$ ./gunicorn_starter.sh
+````
+
+<a name="flask"></a>
+## Flask app (Windows)
+From the root folder:
+```
+$ set FLASK_APP = project.app.py
+$ flask run
+```
 
  <a name="alg"></a>
 # Algorithm
