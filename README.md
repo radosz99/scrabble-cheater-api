@@ -113,7 +113,7 @@ Server returns status and details for all words:
 <a name="docker"></a>
 ## Docker image
 ```
-$ git clone https://github.com/radosz99/scrabble-algorithm.git
+$ git clone https://github.com/radosz99/scrabble-cheater-api.git && cd scrabble-cheater-api
 $ docker build -t scrabble_alg .
 $ docker run -p 5000:5000 scrabble_alg
 ```
@@ -122,6 +122,7 @@ $ docker run -p 5000:5000 scrabble_alg
 ## Gunicorn daemon server (Linux)
 From the root folder:
 ``` 
+$ git clone https://github.com/radosz99/scrabble-cheater-api.git && cd scrabble-cheater-api
 $ chmod +x gunicorn_starter.sh
 $ ./gunicorn_starter.sh
 ````
@@ -130,6 +131,7 @@ $ ./gunicorn_starter.sh
 ## Flask app (Windows)
 From the root folder:
 ```
+$ git clone https://github.com/radosz99/scrabble-cheater-api.git && cd scrabble-cheater-api
 $ set FLASK_APP=project.app.py
 $ flask run
 ```
