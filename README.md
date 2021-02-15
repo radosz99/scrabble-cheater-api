@@ -1,8 +1,8 @@
 # Table of Contents
-- [General info](#desc)  
-- [Endpoints](#endpoints)  
-  - [Get best move (GET)](#best)  
-  - [Check move correctness (GET)](#corr)  
+- [General info](#desc)
+- [Endpoints](#endpoints)
+  - [Get best move (GET)](#best)
+  - [Check move correctness (GET)](#corr)
 - [Run](#run)  
   - [Docker image](#docker)  
   - [Gunicorn server](#gunicorn)  
@@ -130,7 +130,7 @@ $ ./gunicorn_starter.sh
 ## Flask app (Windows)
 From the root folder:
 ```
-$ set FLASK_APP = project.app.py
+$ set FLASK_APP=project.app.py
 $ flask run
 ```
 
