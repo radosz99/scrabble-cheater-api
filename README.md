@@ -78,7 +78,7 @@ Server returns quantity of valid moves and their details:
         ...
         {"coordinate": "J5", "points": 73, "word": "entryman"},
         {"coordinate": "10C", points": 76, "word": "tyramine"},
-        {"oordinate": "12C", "points": 84, word": "tyramine"}
+        {"coordinate": "12C", "points": 84, word": "tyramine"}
         ]
 }
 ```
