@@ -21,7 +21,7 @@ def get_trie(country):
         return trie_GB
 
 
-@app.route('/best_move/<country>', methods = ['POST'])
+@app.route('/best-move/<country>', methods = ['GET'])
 def get_best_move(country):
     app.logger
     global get_trie
@@ -34,7 +34,7 @@ def get_best_move(country):
         board = []
         for line in json_board:
             board.append([line[str(i)] for i in range(15)])
-        algorithm = Algorithm(letters,board, country)
+        algorithm = Algorithm(letters, board, country)
         best_moves = algorithm.algorithm_engine(get_trie(country))
         return jsonify(best_moves)
     except TypeError as e:
@@ -45,7 +45,7 @@ def get_best_move(country):
         abort(422, description="Syntax is good, but I cannot process it, make sure you provide letters and board in appropriate format")
 
 
-@app.route('/check_word/<country>', methods = ['POST'])
+@app.route('/check_word/<country>', methods = ['GET'])
 def check_if_word_in_dict(country):
     app.logger
     global get_trie
