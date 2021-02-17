@@ -1,11 +1,13 @@
 from .anagram import find_anagrams
+from enum import Enum  
 import logging
 
 class Algorithm:
     def __init__(self, letters, board, country):
         self.letters = [x.lower() for x in letters]
         self.board = board
-        self.create_patterns()
+        pattern_finder = PatternFinder()
+        self.pattern_board = pattern_finder.create_patterns(self.board)
         self.country = country
 
     def algorithm_engine(self,trie):
@@ -20,12 +22,12 @@ class Algorithm:
             coords = word[0][1]
             word_json['word'] = word[0][0]
             word_json['points'] = word[1]
-            if(coords[5]=='v'):
+            if(coords[5]==Orientation.vertical):
                 x = coords[1] - coords[3]
                 y = coords[2]
                 ch_y = chr(65 + y)
                 word_json['coordinate'] = str(ch_y) + str(x)
-            elif(coords[5]=='h'):
+            elif(coords[5]==Orientation.horizontal):
                 x = coords[1]
                 y = coords[2] - coords[3]
                 ch_y = chr(65 + y)
@@ -43,7 +45,7 @@ class Algorithm:
         board_letters = info[0]
         brigdes=info[1]
         #znajdowanie wszystkich anagramow
-        anagrams = find_anagrams(str(self.letters)+board_letters,trie)
+        anagrams = find_anagrams(str(self.letters) + board_letters,trie)
         #wybor wszystkich anagramow mogacych pasowac do patternow, wstepna selekcja
         valid_anagrams = self.find_probably_valid_words(anagrams=anagrams, letters=str(self.letters), board_letters=board_letters, brigdes=brigdes)
         #znajdowanie wyrazow rzeczywiscie pasujacych do patternow, ostateczna selekcja
@@ -89,7 +91,6 @@ class Algorithm:
         word=''
         list_of_valid_words=[]
         counter=1
-        #ewaluacja ruchow i zapis do listy
         while(counter!=len(sorted_by_length)+1):
             word_to_check=sorted_by_length[len(sorted_by_length)-counter]
             words = self.check_if_valid(word_to_check)  
@@ -150,34 +151,7 @@ class Algorithm:
 
         sorted_by_length = sorted(new_anagrams, key=len)
         return sorted_by_length
-    
-    def get_string_with_others_best(self,sorted_list_of_valid_words):
-        #string z pozostalymi slowami
-        str_other_best_valid=''
-        for i in range (20):
-            if(len(sorted_list_of_valid_words)>i+1):
-                info_other = sorted_list_of_valid_words[len(sorted_list_of_valid_words)-2-i]
-                str_other_best_valid=str_other_best_valid+info_other[0][0]+' - '+str(info_other[1]) + " pts., "
-        str_other_best_valid = str_other_best_valid[0:len(str_other_best_valid)-2]
-        return str_other_best_valid+' Total: ' + str(len(sorted_list_of_valid_words))+ ' words.'
-
-    def create_patterns(self):
-        self.pattern_board=[]
-    
-        pattern_h_board = self.get_right_angle_patterns(self.board, 'h')
-        pattern_v_board = self.get_right_angle_patterns(self.transpose_board(self.board),'v')
-        pattern_v_bridges = self.get_bridge_patterns(pattern_v_board)
-        pattern_h_bridges = self.get_bridge_patterns(pattern_h_board)
-        for pattern in pattern_h_board:
-            self.pattern_board.append(pattern)
-        for pattern in pattern_v_board:
-            self.pattern_board.append(pattern)
-        for pattern in pattern_v_bridges:
-            self.pattern_board.append(pattern)
-        for pattern in pattern_h_bridges:
-            self.pattern_board.append(pattern)
-        
-
+             
     def evaluate_move(self, word_with_pattern):
         coords = word_with_pattern[1]
         word = word_with_pattern[0]
@@ -187,7 +161,7 @@ class Algorithm:
             bonus=50
         multiplier=1
     
-        if(coords[5]=='v'):
+        if(coords[5]==Orientation.vertical):
             for x in range (len(word)):
                 if(len(coords[0])==2):
                     info = self.get_field_value(word[x], coords[1]+x-coords[3],coords[2])
@@ -205,7 +179,7 @@ class Algorithm:
                         sum=sum+int(info[0]*info[1])
                         multiplier=int(multiplier*int(info[2]))
 
-        if(coords[5]=='h'):
+        if(coords[5]==Orientation.horizontal):
             for x in range (len(word)):
                 if(len(coords[0])==2):
                     info = self.get_field_value(word[x], coords[1],coords[2]+x-coords[3])
@@ -222,14 +196,12 @@ class Algorithm:
                         sum=sum+int(info[0]*info[1])
                         multiplier=int(multiplier*int(info[2]))
         return sum*multiplier+bonus
-                        
-                        
-
-
+                            
     def get_field_value(self, char, x,y):
         word_multiplier=1
         letter_multiplier=1
         letter_value = self.get_char_value(char)
+
         if(((x==1 or x==13)and (y==1 or y==13)) or ((x==2 or x==12) and (y==2 or y==12)) or ((x==3  or x==11) and (y==3 or y==11)) or ((x==4 or x==10) and (y==4 or y==10)) or (x == 7 and y ==7)):
             word_multiplier=2
         if(((x==0 or x==14) and (y==0 or y==7 or y==14)) or (x==7 and (y==0 or y==14))):
@@ -278,17 +250,108 @@ class Algorithm:
         return 1
 
 
-    def transpose_board(self,board):
-        transposed_board =[]
+    def get_letters_for_anagram(self):
+        board_letters = ''
+        bridges = {}
+        for pattern in self.pattern_board:
+            if(len(pattern[0])==2):
+                bridges[pattern[0]]=pattern[6]
+            elif(len(pattern[0])==1):
+                board_letters=board_letters+pattern[0]
 
-        for x in range(15):
-            new_line=[]
-            for y in range(15):
-                new_line.append(board[y][14-x])
-            transposed_board.append(new_line)
-        return transposed_board    
+        
+        letters = "".join(set(board_letters))
+        
 
-    def get_right_angle_patterns(self,board, node_orient):
+
+        print(letters)
+        for key in bridges:
+            position1 = letters.find(key[0])
+            position2 = letters.find(key[1])
+            if(position1==-1 and position2==-1):
+                letters.join(key[0])
+                letters.join(key[1])
+            elif(position1==-1):
+                letters.join(key[0])
+            elif(position2==-1):
+                letters.join(key[1])
+        print(letters)
+        return letters, bridges
+        
+
+class PatternFinder:
+    def __init__(self):
+        pass
+
+    def create_patterns(self, board):
+        pattern_board=[]
+        vertical_patterns = self.get_right_angle_patterns(self._transpose_board(board),Orientation.vertical)
+        horizontal_patterns = self.get_right_angle_patterns(board, Orientation.horizontal)
+        pattern_board.extend(vertical_patterns)
+        pattern_board.extend(horizontal_patterns)
+        pattern_board.extend(self.get_bridge_patterns(vertical_patterns, self._transpose_board(board)))
+        pattern_board.extend(self.get_bridge_patterns(horizontal_patterns, board))
+        return pattern_board
+        
+
+    def get_bridge_patterns(self,pattern_board, board):
+        bridge_patterns=[]
+        for pattern in pattern_board:
+            char = pattern[0]
+
+            for sub_pattern in pattern_board:
+                row=pattern[1]
+                col=pattern[2]
+                sub_row=sub_pattern[1]
+                sub_col=sub_pattern[2]
+                if(sub_row>row+1 and sub_col==col and sub_pattern[5]== Orientation.vertical and ((sub_pattern[3]+pattern[4]>=sub_row-row-1)or(sub_row==row+2))):
+                    cont=True
+                    if(sub_row==row+2):
+                        if(board[row+1][col-1]!=' '):
+                            cont=False
+                        elif(col+1<15):
+                            if(board[row+1][col+1]!=' '):
+                                cont=False   
+                    for i in range(sub_row-row-1):
+                        if(board[row+1+i][col]!=' '):
+                            cont=False
+                    if(cont==False):
+                        continue
+                    difference = sub_row-row
+                    if(pattern[3]<=7-(difference-1)):
+                        left_shift=pattern[3]
+                        right_shift=7-(difference-1)-left_shift
+                        if(right_shift>sub_pattern[4]):
+                            right_shift=sub_pattern[4]   
+                        bridge_pattern=(char+sub_pattern[0],row,col,left_shift,right_shift,Orientation.vertical,difference)
+                        bridge_patterns.append(bridge_pattern)
+
+                if(sub_col>col+1 and sub_row==row and sub_pattern[5]==Orientation.horizontal and ((sub_pattern[3]+pattern[4]>=sub_col-col-1) or(sub_col==col+2))):
+                    cont=True
+                    if(sub_col==col+2):
+                        if(board[row-1][col+1]!=' '):
+                            cont=False
+                        elif(row+1<15):
+                            if(board[row+1][col+1]!=' '):
+                                cont=False                           
+                    for i in range(sub_col-col-1):
+                        if(board[row][col+1+i]!=' '):
+                            cont=False
+                    if(cont==False):
+                        continue
+                    difference = sub_col-col
+                    if(pattern[3]<=7-(difference-1)):
+                        left_shift=pattern[3]
+                        right_shift=7-(difference-1)-left_shift
+                        if(right_shift>sub_pattern[4]):
+                            right_shift=sub_pattern[4]   
+                        bridge_pattern=(char+sub_pattern[0],row,col,left_shift,right_shift,Orientation.horizontal,difference)
+                        bridge_patterns.append(bridge_pattern)
+
+        return list(set(bridge_patterns))
+
+
+    def get_right_angle_patterns(self, board, node_orient):
         pattern_board=[]
         for x in range(15):
             for y in range(15):
@@ -315,10 +378,10 @@ class Algorithm:
                             continue
 
                         if(empty_left_side==1):
-                            empty_left_side = self.get_empty_fields_on_the_left(x,y,board)
+                            empty_left_side = self._get_empty_cells_on_the_left(x,y,board)
 
                         if(empty_right_side==1):
-                            empty_right_side = self.get_empty_fields_on_the_right(x,y,board)
+                            empty_right_side = self.get_empty_cells_on_the_right(x,y,board)
 
                         help_index_right = empty_right_side
                         help_index_left = empty_left_side
@@ -328,9 +391,7 @@ class Algorithm:
                         if(empty_left_side>7):
                             help_index_left=7
                         
-                        patterns = self.make_patterns(help_index_left, help_index_right, node_orient, board, x,y)
-                        for pattern in patterns:
-                            pattern_board.append(pattern)
+                        pattern_board.extend(self.make_patterns(help_index_left, help_index_right, node_orient, board, x,y))
 
         return pattern_board
 
@@ -372,162 +433,105 @@ class Algorithm:
                     return True
         return False
 
-    def get_empty_fields_on_the_left(self,x,y,board):
-        left=True
-        index_left=1
-        while(left==True and y-index_left!=0):
-            down_empty=False
-            if(x==14):
-                down_empty = True
-            elif(board[x+1][y-1-index_left]==' '):
-                down_empty = True
 
-            up_empty=False
-            if(x==0):
-                up_empty=True
-            elif(board[x-1][y-1-index_left]==' '):
-                up_empty=True
+    def _transpose_board(self, board):
+        return [([board[y][14 - x] for y in range(15)]) for x in range(15)]    
 
-            if(up_empty and down_empty):
-                #czy doszlo sie do poczatku planszy
-                if(y-1-index_left==0):
-                    index_left=index_left+1
-                elif(board[x][y-2-index_left]==' '):
-                    index_left=index_left+1
-                else:
-                    left=False
-            else:
-                left=False
-        return index_left
+    def _get_empty_cells_on_the_left(self, x, y, board):
+        empty_cells_on_left = 0
+        while(self._check_if_left_cell_is_available(board, x, y - empty_cells_on_left)):
+            empty_cells_on_left += 1
+        return empty_cells_on_left
 
-    def get_empty_fields_on_the_right(self,x,y,board):
-        index_right=1
-        right=True
-        while(right==True and y+index_right!=14):
-            state=False
-            if(x==14):
-                state = True
-            elif(y+index_right==14):
-                state=True
-            elif(board[x+1][y+1+index_right]==' '):
-                state = True
-            state2=False
-            if(x==0):
-                state2=True
-            elif(board[x-1][y+1+index_right]==' '):
-                state2=True
-            if(state2 and state):
-                if(y+1+index_right==14):
-                    index_right=index_right+1
-                elif(board[x][y+2+index_right]==' '):
-                    index_right=index_right+1
-                else:
-                    right=False
-            else:
-                right=False
-        return index_right
+    def _check_if_left_cell_is_available(self, board, x, y):
+        if(y == 0):
+            return False
+        top_not_adjacent = self._check_if_not_adjacent_to_top(board, x, y - 1)
+        bottom_not_adjacent = self._check_if_not_adjacent_to_bottom(board, x, y - 1)
+        left_not_adjacent = self._check_if_not_adjacent_to_left(board, x, y - 1)
+        return top_not_adjacent and bottom_not_adjacent and left_not_adjacent
 
-    def make_patterns(self, empty_left, empty_right, node_orient, board, x,y):
+    def _check_if_not_adjacent_to_top(self, board, x, y):
+        if(self._check_if_cell_is_in_top_row(x)): return True
+        elif(self._check_if_cell_on_the_top_is_empty(board, x, y)): return True
+        else: return False
+
+    def _check_if_cell_on_the_top_is_empty(self, board, x, y):
+        if(board[x - 1][y] == ' '): return True
+        else: return False
+
+    def _check_if_cell_is_in_top_row(self, x):
+        if(x==0): return True
+        else: return False
+
+    def _check_if_not_adjacent_to_bottom(self, board, x, y):
+        if(self._check_if_cell_is_in_bottom_row(x)): return True
+        elif(self._check_if_cell_on_the_bottom_is_empty(board, x, y)): return True
+        else: return False
+
+    def _check_if_cell_on_the_bottom_is_empty(self, board, x, y):
+        if(board[x + 1][y] == ' '): return True
+        else: return False
+
+    def _check_if_cell_is_in_bottom_row(self, x):
+        if(x == 14): return True
+        else: return False
+
+    def _check_if_not_adjacent_to_left(self, board, x, y):
+        if(self._check_if_cell_is_in_left_column(y)): return True
+        elif(self._check_if_cell_on_the_left_is_empty(board, x, y)): return True
+        else: return False
+
+    def _check_if_cell_is_in_left_column(self, y):
+        if(y == 0): return True
+        else: return False
+
+    def _check_if_cell_on_the_left_is_empty(self, board, x, y):
+        if(board[x][y - 1] == ' '): return True
+        else: return False
+
+    def _check_if_not_adjacent_to_right(self, board, x, y):
+        if(self._check_if_cell_is_in_right_column(y)): return True
+        elif(self._check_if_cell_on_the_right_is_empty(board, x, y)): return True
+        else: return False
+
+    def _check_if_cell_is_in_right_column(self, y):
+        if(y == 14): return True
+        else: return False
+
+    def _check_if_cell_on_the_right_is_empty(self, board, x, y):
+        if(board[x][y + 1] == ' '): return True
+        else: return False
+
+    def _check_if_right_cell_is_available(self, board, x, y):
+        if(y == 14):
+            return False
+        top_not_adjacent = self._check_if_not_adjacent_to_top(board, x, y + 1)
+        bottom_not_adjacent = self._check_if_not_adjacent_to_bottom(board, x, y + 1)
+        right_not_adjacent = self._check_if_not_adjacent_to_right(board, x, y + 1)
+        return top_not_adjacent and bottom_not_adjacent and right_not_adjacent
+
+    def get_empty_cells_on_the_right(self, x, y, board):
+        empty_cells_on_right = 0
+        while(self._check_if_right_cell_is_available(board, x, y + empty_cells_on_right)):
+            empty_cells_on_right += 1
+        return empty_cells_on_right
+
+    def get_coordinates_according_to_board_orientation(self, orientation, x, y):
+        if(orientation == Orientation.horizontal):
+            return x, y
+        elif(orientation == Orientation.vertical):
+            return y, 14 - x
+
+    def make_patterns(self, empty_left, empty_right, orientation, board, x, y):
         pattern_board=[]
-        for i in range (empty_left+1):
-            right_shift=empty_right
-            if(i==0 and empty_right==0):
-                continue
-            if(node_orient=='h'):
-                coord_x=x
-                coord_y=y
-            elif(node_orient=='v'):
-                coord_x=y
-                coord_y=14-x
-
-            if(i+empty_right>7):
-                right_shift = right_shift-(i+empty_right-7)
-
-            if(right_shift<0):
-                right_shift=0
-            if(y==0):
-                pattern = (board[x][y].lower(),coord_x,coord_y,0,right_shift,node_orient)
-            else:
-                pattern = (board[x][y].lower(),coord_x,coord_y,i,right_shift,node_orient)
-            pattern_board.append(pattern)
+        empty_left = 7 if empty_left > 7 else empty_left
+        for i in range (empty_left + 1):
+            free_cells_on_right = empty_right if (i + empty_right <= 7) else 7 - i
+            real_x, real_y = self.get_coordinates_according_to_board_orientation(orientation, x, y)
+            pattern_board.append((board[x][y].lower(), real_x, real_y, i, free_cells_on_right, orientation))
         return pattern_board
 
-    def get_bridge_patterns(self,pattern_board):
-        bridge_patterns=[]
-        for pattern in pattern_board:
-            char = pattern[0]
-
-            for sub_pattern in pattern_board:
-                row=pattern[1]
-                col=pattern[2]
-                sub_row=sub_pattern[1]
-                sub_col=sub_pattern[2]
-                if(sub_row>row+1 and sub_col==col and sub_pattern[5]=='v' and ((sub_pattern[3]+pattern[4]>=sub_row-row-1)or(sub_row==row+2))):
-                    cont=True
-                    if(sub_row==row+2):
-                        if(self.board[row+1][col-1]!=' '):
-                            cont=False
-                        elif(col+1<15):
-                            if(self.board[row+1][col+1]!=' '):
-                                cont=False   
-                    for i in range(sub_row-row-1):
-                        if(self.board[row+1+i][col]!=' '):
-                            cont=False
-                    if(cont==False):
-                        continue
-                    difference = sub_row-row
-                    if(pattern[3]<=7-(difference-1)):
-                        left_shift=pattern[3]
-                        right_shift=7-(difference-1)-left_shift
-                        if(right_shift>sub_pattern[4]):
-                            right_shift=sub_pattern[4]   
-                        bridge_pattern=(char+sub_pattern[0],row,col,left_shift,right_shift,'v',difference)
-                        bridge_patterns.append(bridge_pattern)
-
-                if(sub_col>col+1 and sub_row==row and sub_pattern[5]=='h' and ((sub_pattern[3]+pattern[4]>=sub_col-col-1) or(sub_col==col+2))):
-                    cont=True
-                    if(sub_col==col+2):
-                        if(self.board[row-1][col+1]!=' '):
-                            cont=False
-                        elif(row+1<15):
-                            if(self.board[row+1][col+1]!=' '):
-                                cont=False                           
-                    for i in range(sub_col-col-1):
-                        if(self.board[row][col+1+i]!=' '):
-                            cont=False
-                    if(cont==False):
-                        continue
-                    difference = sub_col-col
-                    if(pattern[3]<=7-(difference-1)):
-                        left_shift=pattern[3]
-                        right_shift=7-(difference-1)-left_shift
-                        if(right_shift>sub_pattern[4]):
-                            right_shift=sub_pattern[4]   
-                        bridge_pattern=(char+sub_pattern[0],row,col,left_shift,right_shift,'h',difference)
-                        bridge_patterns.append(bridge_pattern)
-
-        return list(set(bridge_patterns))
-
-
-    def get_letters_for_anagram(self):
-        board_letters=''
-        bridges={}
-        for pattern in self.pattern_board:
-            if(len(pattern[0])==2):
-                bridges[pattern[0]]=pattern[6]
-            elif(len(pattern[0])==1):
-                board_letters=board_letters+pattern[0]
-
-        letters = "".join(set(board_letters)) 
-        for key in bridges:
-            position1 = letters.find(key[0])
-            position2 = letters.find(key[1])
-            if(position1==-1 and position2==-1):
-                letters.join(key[0])
-                letters.join(key[1])
-            elif(position1==-1):
-                letters.join(key[0])
-            elif(position2==-1):
-                letters.join(key[1])
-        return letters, bridges
-        
+class Orientation(Enum):
+    horizontal = 1
+    vertical = 2

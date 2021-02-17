@@ -45,7 +45,7 @@ def get_best_move(country):
         abort(422, description="Syntax is good, but I cannot process it, make sure you provide letters and board in appropriate format")
 
 
-@app.route('/check_word/<country>', methods = ['GET'])
+@app.route('/check_words/<country>', methods = ['GET'])
 def check_if_word_in_dict(country):
     app.logger
     global get_trie
