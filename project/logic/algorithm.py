@@ -60,7 +60,7 @@ class Algorithm:
 
     def _get_valid_moves(self, anagrams):
         moves = []
-        for anagram in anagrams:
+        for anagram in [anagram for anagram in anagrams if len(anagram) > 1]:
             for pattern in self.patterns:
                 if(self._check_if_pattern_match_to_anagram(pattern, anagram)):
                     if(pattern.get_word_type() == WordType.RIGHT_ANGLE):
