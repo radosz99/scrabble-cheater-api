@@ -8,20 +8,20 @@ import sys
 
 app = Flask(__name__)
 logging.basicConfig(filename='demo.log', level=logging.DEBUG)
-        
-#trie_PL = make_trie("PL")
+
+# trie_PL = make_trie("PL")
 trie_GB = make_trie("GB")
 
 
 def get_trie(country):
-    upper_country = country.upper()
-    if(upper_country == "PL"):
+    upper_country = country.lower()
+    if(upper_country == "pl"):
         return trie_PL
-    elif(upper_country == "GB"):
+    elif(upper_country == "gb"):
         return trie_GB
 
 
-@app.route('/best-move/<country>', methods = ['GET'])
+@app.route('/best-move/<country>', methods=['GET'])
 def get_best_move(country):
     app.logger
     global get_trie
@@ -29,23 +29,23 @@ def get_best_move(country):
     logging.info(f"Data = {data}")
     try:
         letters = data["letters"]
-        json_board = data["board"]  
+        json_board = data["board"]
         logging.info(f"New request for best move, letter:{letters}, board:{json_board}")
         board = []
         for line in json_board:
             board.append([line[str(i)] for i in range(15)])
-        algorithm = Algorithm(letters, board, country)
+        algorithm = Algorithm(letters, board, country.lower())
         best_moves = algorithm.algorithm_engine(get_trie(country))
         return jsonify(best_moves)
     except TypeError as e:
         logging.info(f"Missing parameters in request - {e}")
         abort(400, description="No letters or no board, how can I handle it?")
     except (KeyError, IndexError) as e:
-        logging.info(f"Invalid format of parameters - {e}") 
+        logging.info(f"Invalid format of parameters - {e}")
         abort(422, description="Syntax is good, but I cannot process it, make sure you provide letters and board in appropriate format")
 
 
-@app.route('/check_word/<country>', methods = ['GET'])
+@app.route('/check-words/<country>', methods=['GET'])
 def check_if_word_in_dict(country):
     app.logger
     global get_trie
@@ -62,7 +62,7 @@ def check_if_word_in_dict(country):
         logging.info(f"Missing parameters in request - {e}")
         abort(400, description="No words, how can I check anything?")
     except (KeyError, IndexError) as e:
-        logging.info(f"Invalid format of parameters - {e}") 
+        logging.info(f"Invalid format of parameters - {e}")
         abort(422, description="Syntax is good, but I cannot process it, make sure you provide words in appropriate format")
 
 
