@@ -1,12 +1,14 @@
 from collections import Counter
 import logging
 
+
 def find_anagrams(letters, trie):
     letter_counts = Counter(letters)
     return anagram_engine(letter_counts, [], trie, len(letters))
 
+
 def anagram_engine(letter_counts, path, root, word_length):
-    words=[]
+    words = []
     if None in root.keys():
         word = ''.join(path)
         words.append(word)
@@ -21,6 +23,7 @@ def anagram_engine(letter_counts, path, root, word_length):
         path.pop()
         letter_counts[letter] = count
     return words
+
 
 def find_words(words, trie):
     logging.basicConfig(filename='demo.log', level=logging.DEBUG)
@@ -43,13 +46,13 @@ def find_words(words, trie):
 
 
 def find_word(word, trie):
-    if None in trie.keys() and len(word)==0:
+    if(None in trie.keys() and len(word) == 0):
         return True
     try:
         this_dict = trie[word[0]]
     except:
         return False
-    if(find_word(word[1:], this_dict)==True):
+    if(find_word(word[1:], this_dict)):
         return True
     else:
         return False
