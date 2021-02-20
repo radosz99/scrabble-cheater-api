@@ -3,12 +3,12 @@ from project.logic.algorithm import Algorithm
 
 trie_GB = make_trie("GB")
 
-letters = "upabymn"
+letters = "pietrus"
 country = "gb"    
 board = [[' ' for i in range(15)] for x in range(15)]
 
-# sixth_line = [' ', 'o', 'p', 'e', 'r', 'a', 't', 'i', 'o', 'n', 'a', 'l', ' ', ' ', ' ']
-# board[6] = sixth_line
+sixth_line = [' ', 'o', 'p', 'e', 'r', 'a', 't', 'i', 'o', 'n', 'a', 'l', ' ', ' ', ' ']
+board[6] = sixth_line
 # board[8] = sixth_line
 
 # board[4][7] = 't'
@@ -26,8 +26,8 @@ board = [[' ' for i in range(15)] for x in range(15)]
 
 # board =  [([board[y][14 - x] for y in range(15)]) for x in range(15)]
 
-# for line in board:
-#     print(line)
+for line in board:
+    print(line)
 
 algorithm = Algorithm(letters, board, country)
 best_moves = algorithm.algorithm_engine(trie_GB)
