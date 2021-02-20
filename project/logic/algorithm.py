@@ -9,6 +9,8 @@ class Algorithm:
         self.board = board
         pattern_finder = PatternFinder()
         self.patterns = pattern_finder.create_patterns(board)
+        for pattern in self.    patterns:
+            print(pattern)
         self.country = country
 
     def algorithm_engine(self, trie):
@@ -53,10 +55,11 @@ class Algorithm:
         if(orientation == Orientation.vertical):
             x = start_x - empty_cells_on_left
             y = start_y
+            return str(chr(65 + y)) + str(x)
         elif(orientation == Orientation.horizontal):
             x = start_x
             y = start_y - empty_cells_on_left
-        return str(x) + str(chr(65 + y))
+            return str(x) + str(chr(65 + y))
 
     def _get_valid_moves(self, anagrams):
         moves = []
