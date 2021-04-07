@@ -1,26 +1,3 @@
-# Table of Contents
-- [General info](#desc)
-- [Endpoints](#endpoints)
-  - [Get best move (GET)](#best)
-  - [Check move correctness (GET)](#corr)
-- [Run](#run)  
-  - [Docker image](#docker)  
-  - [Gunicorn server](#gunicorn)  
-  - [Flask app](#flask)
-  
-  
-- [Algorithm](#alg)  
-  - [Patterns](#pat)  
-    - [Right angle](#ang)  
-    - [Bridges](#brid)  
-  - [Word searching](#word)  
-    - [Anagrams](#anag)  
-    - [Probably valid words](#prob)  
-    - [Valid words](#val)  
-  - [Final result](#fin)  
-- [Status](#stat)  
-
-
 <a name="desc"></a>
 # General info
 
