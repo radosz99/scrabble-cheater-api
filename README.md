@@ -218,6 +218,4 @@ Value of the best move was 32 points and according to the pattern assigned to th
 
  <a name="stat"></a>
 # Status
-The plans are to add additional, more complex, but less popular types of moves - adding letters to existing words, arranging several words at once. These could be done by creating new types of patterns and a little changes in algorithm engine. Feel free to pull request.  
-
-Also an improvement should be made to create bridges so that they can be created not only from letters that belong to *right angles*, but also other letters from the board - in this example bridge exists, but program will not find it because *ę* is not the *right angle*
+The plans are to add additional, more complex, but less popular types of moves - adding letters to existing words, arranging several words at once. These could be done by creating new types of patterns and a little changes in algorithm engine. Feel free to pull request. 
