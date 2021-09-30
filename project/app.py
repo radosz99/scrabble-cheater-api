@@ -1,10 +1,9 @@
-from flask import Flask, jsonify, request, abort, render_template, flash, redirect, url_for
+from flask import Flask, jsonify, request, abort
+import traceback
 from .logic.trie import make_trie
 import logging
 from .logic.algorithm import Algorithm
 from .logic.anagram import find_words
-import json
-import sys
 
 app = Flask(__name__)
 logging.basicConfig(filename='demo.log', level=logging.DEBUG)
@@ -29,19 +28,16 @@ def get_best_move(country):
     logging.info(f"Data = {data}")
     try:
         letters = data["letters"]
-        json_board = data["board"]
-        logging.info(f"New request for best move, letter:{letters}, board:{json_board}")
-        board = []
-        for line in json_board:
-            board.append([line[str(i)] for i in range(15)])
+        board = data["board"]
+        logging.info(f"New request for best move, letter:{letters}, board:{board}")
         algorithm = Algorithm(letters, board, country.lower())
         best_moves = algorithm.algorithm_engine(get_trie(country))
         return jsonify(best_moves)
-    except TypeError as e:
-        logging.info(f"Missing parameters in request - {e}")
+    except TypeError:
+        logging.info(f"Missing parameters in request - {traceback.format_exc()}")
         abort(400, description="No letters or no board, how can I handle it?")
-    except (KeyError, IndexError) as e:
-        logging.info(f"Invalid format of parameters - {e}")
+    except (KeyError, IndexError):
+        logging.info(f"Invalid format of parameters - {traceback.format_exc()}")
         abort(422, description="Syntax is good, but I cannot process it, make sure you provide letters and board in appropriate format")
 
 
@@ -58,11 +54,11 @@ def check_if_word_in_dict(country):
         for word in words_json:
             words.append(word)
         return jsonify(find_words(words, get_trie(country)))
-    except TypeError as e:
-        logging.info(f"Missing parameters in request - {e}")
+    except TypeError:
+        logging.info(f"Missing parameters in request - {traceback.format_exc()}")
         abort(400, description="No words, how can I check anything?")
-    except (KeyError, IndexError) as e:
-        logging.info(f"Invalid format of parameters - {e}")
+    except (KeyError, IndexError):
+        logging.info(f"Invalid format of parameters - {traceback.format_exc()}")
         abort(422, description="Syntax is good, but I cannot process it, make sure you provide words in appropriate format")
 
 
