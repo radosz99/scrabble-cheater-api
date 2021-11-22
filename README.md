@@ -12,7 +12,7 @@ Currenty supported countries: `GB`.
 
 ### URL
 ```
-http://127.0.0.1:7088/best-move/{country}
+http://153.92.221.4:8000/best-move/{country}
 ```
 ### Request body
 To get possibly best move you must pass two object:
@@ -63,7 +63,7 @@ Server returns quantity of valid moves and their details:
 
 ### URL
 ```
-http://127.0.0.1:7088/check-words/{country}
+http://153.92.221.4:8000/check-words/{country}
 ```
 ### Request body
 To check if word is valid in chosen dictionary you must pass:
