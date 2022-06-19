@@ -33,14 +33,15 @@ def get_best_moves():
     return algorithm.algorithm_engine(get_trie("GB"))
 
 
-letters = "antiiant"
+letters = "tyermnaktop"
 board = [[' ' for i in range(15)] for x in range(15)]
 
-sixth_line = [' ', 'o', 'p', 'e', 'r', 'a', 't', 'i', 'o', 'n', 'd', 'l', ' ', ' ', ' ']
-eighth_line = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'l', ' ', ' ', ' ']
+sixth_line = [' ', 'o', 'p', 'e', 'r', 'a', 't', 'i', 'o', 'n', 'a', 'l', ' ', ' ', ' ']
+# eighth_line = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'l', ' ', ' ', ' ']
 board[6] = sixth_line
-board[8] = eighth_line
-board[11] = sixth_line
+# board[8] = eighth_line
+# board[11] = sixth_line
+# board[14] = sixth_line
 for line in board:
     print(line)
 

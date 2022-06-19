@@ -1,7 +1,7 @@
 from .anagram import find_anagrams
 from .structures import Orientation, Move, WordType, Country
 from .pattern_finder import PatternFinder, Pattern
-from .exceptions import WordDoesNotMatchToPattern
+from .exceptions import WordDoesNotMatchToPattern, timing
 import operator
 import copy
 
@@ -44,7 +44,7 @@ class Algorithm:
         moves = []
         for anagram in anagrams:
             moves.extend(self._get_all_possibilities_for_anagram_in_clear_board(anagram))
-        return sort_moves(moves)
+        return Algorithm.sort_moves(moves)
 
     def _get_moves_base_on_word_type(self, pattern, anagram):
         if pattern.get_word_type() is WordType.RIGHT_ANGLE:
@@ -52,6 +52,7 @@ class Algorithm:
         elif pattern.get_word_type() is WordType.BRIDGE:
             return self._get_bridge_moves(anagram, pattern)
 
+    @timing
     def _get_valid_moves(self, anagrams):
         moves = []
         for anagram in anagrams:
@@ -78,28 +79,18 @@ class Algorithm:
             return True
 
     def _get_letters_from_board(self):
-        board_letters = ''
-        bridges = {}
+        right_angle_letters, bridges_letters = set(), set()
         for pattern in self.patterns:
             if pattern.get_word_type() == WordType.BRIDGE:
-                bridges[pattern.get_letters()] = pattern.get_difference_between_bridge_letters()
+                bridges_letters.add(pattern.get_letters())
             elif pattern.get_word_type() == WordType.RIGHT_ANGLE:
-                board_letters += pattern.get_letters()
+                right_angle_letters.add(pattern.get_letters())
 
-        letters = "".join(set(board_letters))
-
-        for key in bridges:
-            position_first, position_second = letters.find(key[0]), letters.find(key[1])
-            if position_first == -1 and position_second == -1:
-                letters += key[0]
-                letters += key[1]
-            elif position_first == position_second:
-                letters += key[0]
-            elif position_first == -1:
-                letters += key[0]
-            elif position_second == -1:
-                letters += key[1]
-        return letters
+        board_letters = ''.join(list(right_angle_letters))
+        for first_letter, second_letter in bridges_letters:
+            if first_letter == second_letter:
+                board_letters += first_letter
+        return board_letters
 
     @staticmethod
     def get_indexes_with_letter_occurrences_from_string(letter, string):
@@ -115,14 +106,10 @@ class Algorithm:
         finally:
             return occurrences_list
 
-
     def _get_right_angle_moves(self, word, pattern):
-        if (pattern.get_x() == 6 and pattern.get_y() == 3 and word == "ananite"):
-            print(f"mamy xd = {pattern}")
         moves = []
         letter = pattern.get_letters()
         occurrences_list = Algorithm.get_indexes_with_letter_occurrences_from_string(letter, word)
-
         for index in occurrences_list:
             left_space_needed = index
             right_space_needed = len(word) - index - 1
