@@ -9,14 +9,14 @@ app = Flask(__name__)
 logging.basicConfig(filename='demo.log', level=logging.DEBUG)
 
 # trie_PL = make_trie("PL")
-trie_GB = make_trie("GB")
+trie_GB = make_trie("GB", "project/resources")
 
 
 def get_trie(country):
     upper_country = country.lower()
-    if(upper_country == "pl"):
+    if upper_country == "pl":
         return trie_PL
-    elif(upper_country == "gb"):
+    elif upper_country == "gb":
         return trie_GB
 
 
