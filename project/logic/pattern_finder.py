@@ -201,9 +201,9 @@ class PatternFinder:
         self._create_bridge_patterns(board)
         patterns = copy.deepcopy(self.patterns)
         print(f"Number of patterns =  {len(patterns)}")
-        # patterns = list(set(patterns))
-        for pattern in patterns:
-            print(pattern)
+        patterns = list(set(patterns))
+        # for pattern in patterns:
+        #     print(pattern)
         print(f"Number of patterns =  {len(patterns)}")
         return patterns
 

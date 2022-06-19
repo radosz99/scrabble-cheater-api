@@ -71,8 +71,6 @@ class Algorithm:
     def _check_if_pattern_match_to_anagram(self, pattern, anagram):
         try:
             self.check_if_word_has_pattern_letters(pattern, anagram)
-            if pattern.get_word_type() is WordType.BRIDGE:
-                self.validate_difference_between_bridge_letters(pattern, anagram)
             self._check_if_word_without_pattern_letters_has_only_user_letters(pattern, anagram)
         except WordDoesNotMatchToPattern:
             return False
@@ -88,9 +86,7 @@ class Algorithm:
             elif pattern.get_word_type() == WordType.RIGHT_ANGLE:
                 board_letters += pattern.get_letters()
 
-        print(f"Board letters = {board_letters}")
         letters = "".join(set(board_letters))
-        print(f" letters = {letters}")
 
         for key in bridges:
             position_first, position_second = letters.find(key[0]), letters.find(key[1])
@@ -103,39 +99,53 @@ class Algorithm:
                 letters += key[0]
             elif position_second == -1:
                 letters += key[1]
-        print(letters)
         return letters
 
-    def _get_right_angle_moves(self, word, pattern):
-        moves = []
-        word_copy = word
-        letter = pattern.get_letters()
-        letter_occurrences = word.count(letter)
-        occurrences_dict = {}
-        for x in range(letter_occurrences):
-            index = word_copy.find(letter)
-            word_copy = self.remove_letter_from_string_by_index(word_copy, index)
-            occurrences_dict[x] = index + x
+    @staticmethod
+    def get_indexes_with_letter_occurrences_from_string(letter, string):
+        letter_occurrences = string.count(letter)
+        occurrences_list = []
+        try:
+            for x in range(letter_occurrences):
+                index = string.index(letter)
+                occurrences_list.append(index + x)
+                string = Algorithm.remove_letter_from_string_by_index(string, index)
+        except ValueError:
+            pass
+        finally:
+            return occurrences_list
 
-        for value in occurrences_dict.values():
-            left_space_needed = value
-            right_space_needed = len(word) - value - 1
+
+    def _get_right_angle_moves(self, word, pattern):
+        if (pattern.get_x() == 6 and pattern.get_y() == 3 and word == "ananite"):
+            print(f"mamy xd = {pattern}")
+        moves = []
+        letter = pattern.get_letters()
+        occurrences_list = Algorithm.get_indexes_with_letter_occurrences_from_string(letter, word)
+
+        for index in occurrences_list:
+            left_space_needed = index
+            right_space_needed = len(word) - index - 1
             if left_space_needed <= pattern.get_empty_cells_on_left() and right_space_needed <= pattern.get_empty_cells_on_right():
-                moves.append(Move(word, self.country, left_space_needed, pattern))
+                move = Move(word, self.country, left_space_needed, pattern)
+                moves.append(move)
         return moves
 
     def _get_bridge_moves(self, word, pattern):
         moves = []
-        first, second = self.get_bridge_letters_indexes_in_word(pattern.get_letters(), word)
-        x, y = self.get_bridge_letters_indexes_in_word_2(pattern.get_letters(), word)
-        left_space_needed = first
-        right_space_needed = len(word) - second - 1
-        if left_space_needed <= pattern.get_empty_cells_on_left() and right_space_needed <= pattern.get_empty_cells_on_right():
-            moves.append(Move(word, self.country, left_space_needed, pattern))
-        else:
-            pass
-            # print(f"1 = {first}, 2 = {second}, Word = {word}, pattern = {pattern}")
-            # print(f"Firsts list = {x}, seconds list = {y}")
+        bridge_letters = pattern.get_letters()
+        difference = pattern.get_difference_between_bridge_letters()
+        first_letter_occurrences = Algorithm.get_indexes_with_letter_occurrences_from_string(bridge_letters[0], word)
+        for first_letter_occurrence in first_letter_occurrences:
+            try:
+                if word[first_letter_occurrence + difference] != bridge_letters[1]:
+                    continue
+            except IndexError:
+                continue
+            left_space_needed = first_letter_occurrence
+            right_space_needed = len(word) - (first_letter_occurrence + difference + 1)
+            if left_space_needed <= pattern.get_empty_cells_on_left() and right_space_needed <= pattern.get_empty_cells_on_right():
+                moves.append(Move(word, self.country, left_space_needed, pattern))
         return moves
 
     @staticmethod
@@ -163,34 +173,6 @@ class Algorithm:
         return word[:index] + word[index + 1:]
 
     @staticmethod
-    def check_if_matching_difference_between_letters(pattern, word):
-        first_letter, second_letter = pattern.get_letters()[0], pattern.get_letters()[1]
-        first_letter_occurrences = word.count(first_letter)
-        for _ in range(first_letter_occurrences):
-            index = word.find(first_letter)
-            try:
-                if word[index + pattern.get_difference_between_bridge_letters()] == second_letter:
-                    return True
-            except IndexError:
-                pass
-            word = Algorithm.remove_letter_from_string_by_index(word, index)
-        return False
-
-    @staticmethod
-    def get_bridge_letters_indexes_in_word(letters, word):
-        first = word.find(letters[0])
-        word = Algorithm.remove_letter_from_string_by_index(word, first)  # bridge can consist of two the same letters
-        second = word.find(letters[1]) + 1  # add one because of removed letter
-        return first, second
-
-    @staticmethod
-    def get_bridge_letters_indexes_in_word_2(letters, word):
-        first = word.find(letters[0])
-        word = Algorithm.remove_letter_from_string_by_index(word, first)  # bridge can consist of two the same letters
-        second = word.find(letters[1]) + 1  # add one because of removed letter
-        return first, second
-
-    @staticmethod
     def check_if_seven_letters_move(move):
         if len(move.get_word()) - len(move.get_pattern().get_letters()) == 7:
             return True
@@ -205,11 +187,6 @@ class Algorithm:
     @staticmethod
     def sort_moves(moves):
         return Algorithm.get_sorted_list_by_attribute(moves, '_points')
-
-    @staticmethod
-    def validate_difference_between_bridge_letters(pattern, anagram):
-        if not Algorithm.check_if_matching_difference_between_letters(pattern, anagram):
-            raise WordDoesNotMatchToPattern("Difference between bridge letters does not match to word")
 
     @staticmethod
     def check_if_word_has_pattern_letters(pattern, anagram):
