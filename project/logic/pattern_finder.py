@@ -1,5 +1,6 @@
 from .structures import WordType, Orientation, Letter
 from .exceptions import NoMatchingRightAngle
+from .variables import BOARD_SIZE, BOARD_MAX_INDEX, BOARD_MIN_INDEX
 
 
 class Pattern:
@@ -67,15 +68,15 @@ class Pattern:
 
 
 def transpose_letters_coordinates(x, y):
-    return 14 - y, x
+    return BOARD_MAX_INDEX - y, x
 
 
 def untranspose_letters_coordinates(x, y):
-    return y, 14 - x
+    return y, BOARD_MAX_INDEX - x
 
 
 def transpose_board(board):
-    return [([board[y][14 - x] for y in range(15)]) for x in range(15)]
+    return [([board[y][BOARD_MAX_INDEX - x] for y in range(BOARD_SIZE)]) for x in range(BOARD_SIZE)]
 
 
 def check_if_cell_is_empty(board, x, y):
@@ -121,7 +122,7 @@ def get_coordinates_according_to_board_orientation(orientation, x, y):
     if orientation == Orientation.HORIZONTAL:
         return x, y
     elif orientation == Orientation.VERTICAL:
-        return y, 14 - x  # they have been transposed earlier
+        return y, BOARD_MAX_INDEX - x  # they have been transposed earlier
 
 
 def check_if_cell_has_got_no_vertical_neighbors(board, x, y):
@@ -133,13 +134,13 @@ def check_if_cell_has_got_no_horizontal_neighbors(board, x, y):
 
 
 def check_if_right_cell_is_available(board, x, y):
-    if y == 14:
+    if y == BOARD_MAX_INDEX:
         return False
     return check_if_cell_has_got_no_vertical_neighbors(board, x, y + 1) and check_if_no_tiles_on_right(board, x, y + 1)
 
 
 def check_if_left_cell_is_available(board, x, y):
-    if y == 0:
+    if y == BOARD_MIN_INDEX:
         return False
     return check_if_cell_has_got_no_vertical_neighbors(board, x, y - 1) and check_if_no_tiles_on_left(board, x, y - 1)
 
@@ -170,7 +171,8 @@ def get_nearest_right_angle_on_left(x, y, board):
         if not check_if_cell_has_got_no_vertical_neighbors(board, x, index + 1):
             continue
         cell_index = index
-    if 8 >= cell_index > 0:
+
+    if PatternFinder.user_letters_quantity + 1 >= cell_index > 0:  # if 8 is difference we can fit 7 letters
         return cell_index
     else:
         raise NoMatchingRightAngle("There is no accessible right angles on left")
@@ -191,8 +193,10 @@ def get_coordinates_base_on_orientation(orientation, x, y):
 
 
 class PatternFinder:
+    user_letters_quantity = 7
+
     def __init__(self, user_letters_quantity):
-        self._user_letters_quantity = user_letters_quantity
+        self.user_letters_quantity = user_letters_quantity
         self.patterns = []
 
     def create_patterns(self, board):
@@ -210,7 +214,7 @@ class PatternFinder:
 
     def get_amount_of_available_cells_outside_the_bridge(self, difference, x, y, y_coord, board):
         cells_between_the_bridge = difference - 1
-        letters_to_put_outside_bridge = self._user_letters_quantity - cells_between_the_bridge
+        letters_to_put_outside_bridge = self.user_letters_quantity - cells_between_the_bridge
         available_cells_on_left = min(get_empty_cells_on_the_left(x, y_coord, board), letters_to_put_outside_bridge)
         available_cells_on_right = min(get_empty_cells_on_the_right(x, y, board), letters_to_put_outside_bridge)
         return available_cells_on_left, available_cells_on_right
@@ -231,16 +235,15 @@ class PatternFinder:
             difference = y - y_nearest
             bridge_letters = board[x][y_nearest] + board[x][y]
             cells_on_left, cells_on_right = self.get_amount_of_available_cells_outside_the_bridge(difference, x, y, y_nearest, board)
-            for i in range(cells_on_left + 1):
-                max_user_tiles_on_right = self._user_letters_quantity - i - (difference - 1)
-                index_right = min(max_user_tiles_on_right, cells_on_right)
-                x_coord, y = get_coordinates_base_on_orientation(orientation, x, y_nearest)
-                new_pattern = Pattern(bridge_letters, x_coord, y, i, index_right, orientation, difference)
-                self.patterns.append(new_pattern)
+            max_user_tiles_on_right = self.user_letters_quantity - (difference - 1)
+            index_right = min(max_user_tiles_on_right, cells_on_right)
+            x_coord, y = get_coordinates_base_on_orientation(orientation, x, y_nearest)
+            new_pattern = Pattern(bridge_letters, x_coord, y, cells_on_left, index_right, orientation, difference)
+            self.patterns.append(new_pattern)
 
     def _create_right_angle_patterns_for_orientation(self, board, orientation):
-        for x in range(15):
-            for y in range(15):
+        for x in range(BOARD_SIZE):
+            for y in range(BOARD_SIZE):
                 self._create_all_letter_right_angle_patterns(board, x, y, orientation)
 
     def _create_all_letter_right_angle_patterns(self, board, x, y, node_orient):

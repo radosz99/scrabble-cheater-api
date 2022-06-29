@@ -2,16 +2,29 @@ from .anagram import find_anagrams
 from .structures import Orientation, Move, WordType, Country
 from .pattern_finder import PatternFinder, Pattern
 from .exceptions import WordDoesNotMatchToPattern, timing
+from .variables import BOARD_SIZE
+from .board_utilities import BoardUtilities
 import operator
 import copy
 
 
+def _get_all_possibilities_for_anagram_in_clear_board(anagram):
+    return [_get_move_instance_from_anagram_and_index(anagram, i) for i in range(len(anagram))]
+
+
+def _get_valid_moves_from_clear_board(anagrams):
+    moves = []
+    for anagram in anagrams:
+        moves.extend(_get_all_possibilities_for_anagram_in_clear_board(anagram))
+    return Algorithm.sort_moves(moves)
+
+
 class Algorithm:
-    def __init__(self, letters, board, country):
+    def __init__(self, letters, board):
         self.letters = letters.lower()
         self.board = board
         self.patterns = self._get_patterns()
-        self.country = Country[country.upper()]
+        self.board_utilities = BoardUtilities()
 
     def _get_patterns(self):
         pattern_finder = PatternFinder(len(self.letters))
@@ -20,31 +33,22 @@ class Algorithm:
 
     def algorithm_engine(self, trie):
         if self._check_if_board_is_clear():
-            sorted_list_of_valid_moves = self._get_valid_moves_from_clear_board(find_anagrams(str(self.letters), trie))
+            sorted_list_of_valid_moves = _get_valid_moves_from_clear_board(find_anagrams(str(self.letters), trie))
         else:
             anagrams = find_anagrams(str(self.letters) + self._get_letters_from_board(), trie)
             sorted_list_of_valid_moves = self._get_valid_moves(anagrams)
         return self.convert_moves_to_json(sorted_list_of_valid_moves)
 
+    def _get_move_instance_from_anagram_and_index(self, anagram, i):
+        pattern = Pattern(orientation=Orientation.HORIZONTAL)
+        return Move(anagram, self.board_utilities, i, pattern)
+
     def _check_if_board_is_clear(self):
-        for x in range(15):
-            for y in range(15):
+        for x in range(BOARD_SIZE):
+            for y in range(BOARD_SIZE):
                 if self.board[x][y] != ' ':
                     return False
         return True
-
-    def _get_move_instance_from_anagram_and_index(self, anagram, i):
-        pattern = Pattern(orientation=Orientation.HORIZONTAL)
-        return Move(anagram, self.country, i, pattern)
-
-    def _get_all_possibilities_for_anagram_in_clear_board(self, anagram):
-        return [self._get_move_instance_from_anagram_and_index(anagram, i) for i in range(len(anagram))]
-
-    def _get_valid_moves_from_clear_board(self, anagrams):
-        moves = []
-        for anagram in anagrams:
-            moves.extend(self._get_all_possibilities_for_anagram_in_clear_board(anagram))
-        return Algorithm.sort_moves(moves)
 
     def _get_moves_base_on_word_type(self, pattern, anagram):
         if pattern.get_word_type() is WordType.RIGHT_ANGLE:
@@ -52,7 +56,6 @@ class Algorithm:
         elif pattern.get_word_type() is WordType.BRIDGE:
             return self._get_bridge_moves(anagram, pattern)
 
-    @timing
     def _get_valid_moves(self, anagrams):
         moves = []
         for anagram in anagrams:
@@ -114,7 +117,7 @@ class Algorithm:
             left_space_needed = index
             right_space_needed = len(word) - index - 1
             if left_space_needed <= pattern.get_empty_cells_on_left() and right_space_needed <= pattern.get_empty_cells_on_right():
-                move = Move(word, self.country, left_space_needed, pattern)
+                move = Move(word, self.board_utilities, left_space_needed, pattern)
                 moves.append(move)
         return moves
 
@@ -132,7 +135,7 @@ class Algorithm:
             left_space_needed = first_letter_occurrence
             right_space_needed = len(word) - (first_letter_occurrence + difference + 1)
             if left_space_needed <= pattern.get_empty_cells_on_left() and right_space_needed <= pattern.get_empty_cells_on_right():
-                moves.append(Move(word, self.country, left_space_needed, pattern))
+                moves.append(Move(word, self.board_utilities, left_space_needed, pattern))
         return moves
 
     @staticmethod
@@ -147,6 +150,7 @@ class Algorithm:
         for letter in letters:
             index = string.index(letter)
             string = Algorithm.remove_letter_from_string_by_index(string, index)
+        return string
 
     @staticmethod
     def convert_moves_to_json(moves):
@@ -157,7 +161,10 @@ class Algorithm:
 
     @staticmethod
     def remove_letter_from_string_by_index(word, index):
-        return word[:index] + word[index + 1:]
+        if index >= 0:
+            return word[:index] + word[index + 1:]
+        else:
+            return word
 
     @staticmethod
     def check_if_seven_letters_move(move):

@@ -1,5 +1,5 @@
 from enum import Enum
-from . import board_utilities
+from .board_utilities import BoardUtilities
 
 
 class Orientation(Enum):
@@ -11,9 +11,11 @@ class WordType(Enum):
     RIGHT_ANGLE = 1
     BRIDGE = 2
 
+
 class Country(Enum):
     PL = 1
     GB = 2
+
 
 class Letter:
     def __init__(self, x, y, char, user_letter=True):
@@ -45,10 +47,10 @@ class Letter:
 
 
 class Move:
-    def __init__(self, word, country, left_space_needed=0, pattern=None):
+    def __init__(self, word, board_utilities, left_space_needed=0, pattern=None):
+        self.board_utilities = board_utilities
         self._pattern = pattern
         self._word = word
-        self._country = country
         self.left_space_needed = left_space_needed
         self._orientation = pattern.get_orientation()
         self._start_x, self._start_y = self._get_first_letter_coordinates()
@@ -87,7 +89,7 @@ class Move:
     def _evaluate_move(self):
         value = 0
         for counter, letter in enumerate(self._letters_list):
-            value += board_utilities.evaluate_letter_value(letter, self._country)
+            value += self.board_utilities.evaluate_letter_value(letter)
         multiplier = self._calculate_overall_word_multiplier()
         seven_letters_bonus = 50 if self._check_if_seven_letters_move() else 0
         return value * multiplier + seven_letters_bonus
@@ -102,7 +104,7 @@ class Move:
         multiplier = 1
         for letter in self._letters_list:
             if letter.is_user_letter():
-                multiplier *= board_utilities.get_field_word_multiplier(letter.get_x(), letter.get_y())
+                multiplier *= self.board_utilities.get_field_word_multiplier(letter.get_x(), letter.get_y())
         return multiplier
 
     def _get_position_from_coordinates_according_to_orientation(self):

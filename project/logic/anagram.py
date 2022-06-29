@@ -27,12 +27,9 @@ def anagram_engine(letter_counts, path, root, word_length):
 
 
 def find_words(words, trie):
-    logging.basicConfig(filename='demo.log', level=logging.DEBUG)
-
     response = {'status': True}
     words_status = []
     for word in words:
-        logging.info(f"{word}")
         word_status = {'word': word}
         if find_word(word, trie):
             word_status['exist'] = True
