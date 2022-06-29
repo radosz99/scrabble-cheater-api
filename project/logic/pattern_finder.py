@@ -163,21 +163,6 @@ def check_if_cell_can_be_right_angle_pattern(board, x, y):
     return check_if_cell_has_got_no_horizontal_neighbors(board, x, y) and not check_if_cell_is_empty(board, x, y)
 
 
-def get_nearest_right_angle_on_left(x, y, board):
-    cell_index = -1
-    for index in range(y - 1):
-        if not check_if_cell_can_be_right_angle_pattern(board, x, index):
-            continue
-        if not check_if_cell_has_got_no_vertical_neighbors(board, x, index + 1):
-            continue
-        cell_index = index
-
-    if PatternFinder.user_letters_quantity + 1 >= cell_index > 0:  # if 8 is difference we can fit 7 letters
-        return cell_index
-    else:
-        raise NoMatchingRightAngle("There is no accessible right angles on left")
-
-
 def get_coordinates_from_pattern(pattern):
     if pattern.get_orientation() == Orientation.HORIZONTAL:
         return pattern.get_x(), pattern.get_y()
@@ -193,8 +178,6 @@ def get_coordinates_base_on_orientation(orientation, x, y):
 
 
 class PatternFinder:
-    user_letters_quantity = 7
-
     def __init__(self, user_letters_quantity):
         self.user_letters_quantity = user_letters_quantity
         self.patterns = []
@@ -228,7 +211,7 @@ class PatternFinder:
             x, y = get_coordinates_from_pattern(pattern)
 
             try:
-                y_nearest = get_nearest_right_angle_on_left(x, y, board)
+                y_nearest = self._get_nearest_possible_right_angle_on_left(x, y, board)
             except NoMatchingRightAngle:
                 continue
 
@@ -256,3 +239,17 @@ class PatternFinder:
         real_x, real_y = get_coordinates_according_to_board_orientation(orientation, x, y)
         pattern = Pattern(board[x][y].lower(), real_x, real_y, empty_cells_on_left, empty_cells_on_right, orientation)
         self.patterns.append(pattern)
+
+    def _get_nearest_possible_right_angle_on_left(self, x, y, board):
+        cell_index = -1
+        for index in range(y - 1):
+            if not check_if_cell_can_be_right_angle_pattern(board, x, index):
+                continue
+            if not check_if_cell_has_got_no_vertical_neighbors(board, x, index + 1):
+                continue
+            cell_index = index
+
+        if self.user_letters_quantity + 1 >= cell_index >= 0:  # if 8 is difference we can fit 7 letters
+            return cell_index
+        else:
+            raise NoMatchingRightAngle("There is no accessible right angles on left")
