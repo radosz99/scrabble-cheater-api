@@ -1,5 +1,8 @@
 import os
 import sys
+import copy
+import secrets
+
 from functools import wraps
 from time import time
 
@@ -8,7 +11,10 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from logic.trie import make_trie
 from logic.algorithm import Algorithm
-from logic.variables import change_resource_path, change_country
+from logic.variables import change_resource_path, change_country, get_resource_path, get_country, get_board
+from logic.word_finder import get_updated_board_after_move
+from logic.board_utilities import BoardUtilities
+from logic.exceptions import IncorrectMove
 
 
 def timing(f):
@@ -31,7 +37,20 @@ def get_trie(country):
 @timing
 def get_best_moves(trie):
     algorithm = Algorithm(letters, board)
-    return algorithm.algorithm_engine(trie)
+    return algorithm.get_moves(trie)
+
+
+def get_letters_bank():
+    bank = []
+    path = f"{get_resource_path()}/{str(get_country().name).lower()}/letters_occurrences.txt"
+    dict_occurrences = BoardUtilities.get_dictionary_from_file(path)
+    for key, value in dict_occurrences.items():
+        bank.extend(key * value)
+    return bank
+
+
+def get_x_random_items_from_list_as_string(amount, items_list):
+    return ''.join([secrets.choice(items_list) for _ in range(amount)])
 
 
 country = "gb"
@@ -39,25 +58,32 @@ change_resource_path("../resources")
 change_country(country.upper())
 
 trie = get_trie(country)
-letters = "tmarian"
 board = [[' ' for i in range(15)] for x in range(15)]
+# letters_bank = get_letters_bank()
+board = get_board()
+# print(letters_bank)
 
-sixth_line = [' ', 'o', 'p', 'e', 'r', 'a', 't', 'i', 'o', 'n', 'a', 'l', ' ', ' ', ' ']
-eighth_line = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'l', ' ', ' ', ' ']
-board[6] = sixth_line
-# board[8] = sixth_line
-board[11] = sixth_line
-# board[14] = sixth_line
-for line in board:
-    print(line)
+# sixth_line = [' ', ' ', 'p', 'e', 'r', 'a', 't', 'i', 'o', 'n', 'a', 'l', ' ', ' ', ' ']
+# eighth_line = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
 
+# board[11] = sixth_line
+letters = "arkafpo"
 best_moves = get_best_moves(trie)
-quantity = int(best_moves['quantity'])
+for move in best_moves[0:20]:
+    print(move)
 
-points = 0
+# try:
+#     for _ in range(40):
+#         letters = get_x_random_items_from_list_as_string(7, letters_bank)
+#         best_moves = get_best_moves(trie)
+#         for move in best_moves:
+#             get_updated_board_after_move(copy.deepcopy(board), move)
+#         board = get_updated_board_after_move(copy.deepcopy(board), best_moves[0])
+#         print(best_moves[0])
+#         for line in board:
+#             print(line)
+#         # print()
+# except IncorrectMove as e:
+#     print(e)
+#
 
-print(best_moves['moves'][0:10])
-print(quantity)
-for move in best_moves['moves']:
-    points += int(move['points'])
-print(points)

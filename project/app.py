@@ -37,6 +37,7 @@ def get_best_move(country):
         abort(405, description=e)
     except TypeError:
         logging.info(f"Missing parameters in request - {traceback.format_exc()}")
+        p
         abort(400, description="No letters or no board, how can I handle it?")
     except (KeyError, IndexError):
         logging.info(f"Invalid format of parameters - {traceback.format_exc()}")

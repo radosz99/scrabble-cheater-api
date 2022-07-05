@@ -11,7 +11,7 @@ class BoardUtilities:
 
     @staticmethod
     def get_dictionary_from_file(file_path):
-        with open(file_path) as f:
+        with open(file_path, 'r', encoding='utf8') as f:
             data = f.read()
         return json.loads(data)
 

@@ -1,22 +1,11 @@
 from .anagram import find_anagrams
-from .structures import Orientation, Move, WordType, Country
+from .structures import Orientation, Move, WordType, Country, remove_duplicates_from_list
 from .pattern_finder import PatternFinder, Pattern
 from .exceptions import WordDoesNotMatchToPattern, timing
 from .variables import BOARD_SIZE
 from .board_utilities import BoardUtilities
 import operator
 import copy
-
-
-def _get_all_possibilities_for_anagram_in_clear_board(anagram):
-    return [_get_move_instance_from_anagram_and_index(anagram, i) for i in range(len(anagram))]
-
-
-def _get_valid_moves_from_clear_board(anagrams):
-    moves = []
-    for anagram in anagrams:
-        moves.extend(_get_all_possibilities_for_anagram_in_clear_board(anagram))
-    return Algorithm.sort_moves(moves)
 
 
 class Algorithm:
@@ -32,12 +21,24 @@ class Algorithm:
         return patterns
 
     def algorithm_engine(self, trie):
+        sorted_list_of_valid_moves = self.get_moves(trie)
+        return self.convert_moves_to_json(sorted_list_of_valid_moves)
+
+    def get_moves(self, trie):
         if self._check_if_board_is_clear():
-            sorted_list_of_valid_moves = _get_valid_moves_from_clear_board(find_anagrams(str(self.letters), trie))
+            return self._get_valid_moves_from_clear_board(find_anagrams(str(self.letters), trie))
         else:
             anagrams = find_anagrams(str(self.letters) + self._get_letters_from_board(), trie)
-            sorted_list_of_valid_moves = self._get_valid_moves(anagrams)
-        return self.convert_moves_to_json(sorted_list_of_valid_moves)
+            return self._get_valid_moves(anagrams)
+
+    def _get_valid_moves_from_clear_board(self, anagrams):
+        moves = []
+        for anagram in anagrams:
+            moves.extend(self._get_all_possibilities_for_anagram_in_clear_board(anagram))
+        return Algorithm.sort_moves(moves)
+
+    def _get_all_possibilities_for_anagram_in_clear_board(self, anagram):
+        return [self._get_move_instance_from_anagram_and_index(anagram, i) for i in range(len(anagram))]
 
     def _get_move_instance_from_anagram_and_index(self, anagram, i):
         pattern = Pattern(orientation=Orientation.HORIZONTAL)
@@ -62,7 +63,7 @@ class Algorithm:
             for pattern in self.patterns:
                 if self._check_if_pattern_match_to_anagram(pattern, anagram):
                     moves.extend(self._get_moves_base_on_word_type(pattern, anagram))
-        moves = list(set(moves))
+        moves = remove_duplicates_from_list(moves)
         return self.sort_moves(moves)
 
     def _check_if_word_without_pattern_letters_has_only_user_letters(self, pattern, word):

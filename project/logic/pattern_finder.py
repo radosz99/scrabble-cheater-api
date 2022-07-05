@@ -1,10 +1,14 @@
-from .structures import WordType, Orientation, Letter
-from .exceptions import NoMatchingRightAngle
-from .variables import BOARD_SIZE, BOARD_MAX_INDEX, BOARD_MIN_INDEX
+import logging
+
+from .structures import WordType, Orientation, Letter, remove_duplicates_from_list
+from .exceptions import NoMatchingRightAngle, NotRightAnglePattern, NotPartOfBridgePattern
+from .variables import BOARD_SIZE, BOARD_MAX_INDEX, BOARD_MIN_INDEX, BOARD_MIDDLE
+
+logging.basicConfig(filename='demo.log', level=logging.DEBUG)
 
 
 class Pattern:
-    def __init__(self, letters="", x=7, y=7, empty_cells_on_left=0, empty_cells_on_right=0, orientation=None, difference_between_bridge_letters=0):
+    def __init__(self, letters="", x=BOARD_MIDDLE, y=BOARD_MIDDLE, empty_cells_on_left=0, empty_cells_on_right=0, orientation=None, difference_between_bridge_letters=0):
         self._letters = str(letters)
         self._x = x
         self._y = y
@@ -80,6 +84,8 @@ def transpose_board(board):
 
 
 def check_if_cell_is_empty(board, x, y):
+    if x < 0 or y < 0:
+        return True
     try:
         return True if board[x][y] == ' ' else False
     except IndexError:
@@ -118,11 +124,11 @@ def check_if_no_tiles_on_right(board, x, y):
     return True if check_if_cell_on_the_right_is_empty(board, x, y) else False
 
 
-def get_coordinates_according_to_board_orientation(orientation, x, y):
+def get_real_coordinates_according_to_board_orientation(orientation, x, y):
     if orientation == Orientation.HORIZONTAL:
         return x, y
     elif orientation == Orientation.VERTICAL:
-        return y, BOARD_MAX_INDEX - x  # they have been transposed earlier
+        return untranspose_letters_coordinates(x, y)
 
 
 def check_if_cell_has_got_no_vertical_neighbors(board, x, y):
@@ -149,32 +155,47 @@ def get_empty_cells_on_the_right(x, y, board):
     empty_cells_on_right = 0
     while check_if_right_cell_is_available(board, x, y + empty_cells_on_right):
         empty_cells_on_right += 1
-    return empty_cells_on_right if empty_cells_on_right < 7 else 7
+    return empty_cells_on_right
 
 
 def get_empty_cells_on_the_left(x, y, board):
     empty_cells_on_left = 0
     while check_if_left_cell_is_available(board, x, y - empty_cells_on_left):
         empty_cells_on_left += 1
-    return empty_cells_on_left if empty_cells_on_left < 7 else 7
+    return empty_cells_on_left
+
+
+def get_empty_cells_on_both_sides(x, y, board):
+    return get_empty_cells_on_the_left(x, y, board), get_empty_cells_on_the_right(x, y, board)
 
 
 def check_if_cell_can_be_right_angle_pattern(board, x, y):
-    return check_if_cell_has_got_no_horizontal_neighbors(board, x, y) and not check_if_cell_is_empty(board, x, y)
+    if check_if_cell_is_empty(board, x, y):
+        raise NotRightAnglePattern(f"can't be right angle pattern because it's empty")
+    if not check_if_cell_has_got_no_horizontal_neighbors(board, x, y):
+        raise NotRightAnglePattern(f"can't be right angle pattern because it has neighbors in given orientation")
+    empty_cells_on_left, empty_cells_on_right = get_empty_cells_on_both_sides(x, y, board)
+    if empty_cells_on_left == 0 and empty_cells_on_right == 0:
+        raise NotRightAnglePattern(f"can't be right angle pattern because none of the cells on both sides is achievable")
 
 
-def get_coordinates_from_pattern(pattern):
+def check_if_cell_can_be_part_of_bridge_pattern(board, x, y, y_pattern):
+    if not check_if_cell_is_empty(board, x, y - 1):
+        raise NotPartOfBridgePattern(f" can't be part of the bridge because it has neighbor")
+    for i in range(y + 1, y_pattern):
+        if not check_if_cell_has_got_no_vertical_neighbors(board, x, i):
+            raise NotPartOfBridgePattern(f"can't be part of the bride because there are some not empty cells between")
+
+
+def get_coordinates_from_pattern_with_optional_transposition(pattern):
     if pattern.get_orientation() == Orientation.HORIZONTAL:
         return pattern.get_x(), pattern.get_y()
     elif pattern.get_orientation() == Orientation.VERTICAL:
         return transpose_letters_coordinates(pattern.get_x(), pattern.get_y())
 
 
-def get_coordinates_base_on_orientation(orientation, x, y):
-    if orientation == Orientation.HORIZONTAL:
-        return x, y
-    elif orientation == Orientation.VERTICAL:
-        return untranspose_letters_coordinates(x, y)
+def get_amount_of_available_cells_outside_the_bridge(x, y, y_coord, board):
+    return get_empty_cells_on_the_left(x, y_coord, board), get_empty_cells_on_the_right(x, y, board)
 
 
 class PatternFinder:
@@ -185,6 +206,7 @@ class PatternFinder:
     def create_patterns(self, board):
         self._create_right_angle_patterns(board)
         self._create_bridge_patterns(board)
+        self.patterns = remove_duplicates_from_list(self.patterns)
         return self.patterns
 
     def _create_right_angle_patterns(self, board):
@@ -195,61 +217,97 @@ class PatternFinder:
         self._create_bridge_patterns_for_orientation(board, Orientation.HORIZONTAL)
         self._create_bridge_patterns_for_orientation(transpose_board(board), Orientation.VERTICAL)
 
-    def get_amount_of_available_cells_outside_the_bridge(self, difference, x, y, y_coord, board):
-        cells_between_the_bridge = difference - 1
-        letters_to_put_outside_bridge = self.user_letters_quantity - cells_between_the_bridge
-        available_cells_on_left = min(get_empty_cells_on_the_left(x, y_coord, board), letters_to_put_outside_bridge)
-        available_cells_on_right = min(get_empty_cells_on_the_right(x, y, board), letters_to_put_outside_bridge)
-        return available_cells_on_left, available_cells_on_right
+    @staticmethod
+    def flip_board_horizontally(board):
+        flipped_board = []
+        for line in board:
+            flipped_board.append(line[::-1])
+        return flipped_board
+
+    @staticmethod
+    def _get_bridge_pattern_from_pattern_and_nearest_suitable_cell_on_right(board, pattern, y_nearest):
+        return PatternFinder._get_bridge_pattern_from_pattern_and_nearest_suitable_cell_on_left(board, pattern, y_nearest, True)
+
+    @staticmethod
+    def _get_bridge_pattern_from_pattern_and_nearest_suitable_cell_on_left(board, pattern, y_nearest, reversed=False):
+        x, y = get_coordinates_from_pattern_with_optional_transposition(pattern)
+        if reversed:
+            y, y_nearest = y_nearest, y
+        orientation = pattern.get_orientation()
+        difference = y - y_nearest
+        bridge_letters = board[x][y_nearest] + board[x][y]
+        cells_on_left, cells_on_right = get_amount_of_available_cells_outside_the_bridge(x, y, y_nearest, board)
+        real_x, real_y = get_real_coordinates_according_to_board_orientation(orientation, x, y_nearest)
+        return Pattern(bridge_letters, real_x, real_y, cells_on_left, cells_on_right, orientation, difference)
 
     def _create_bridge_patterns_for_orientation(self, board, orientation):
         for pattern in self.patterns:
-            if pattern.get_orientation() != orientation:
+            if pattern.get_orientation() != orientation or pattern.get_word_type() is WordType.BRIDGE:
                 continue
-            if pattern.get_word_type() is WordType.BRIDGE:
-                continue
-            x, y = get_coordinates_from_pattern(pattern)
+            logging.info(f"Looking for nearest matching cell for pattern = {pattern}")
 
             try:
-                y_nearest = self._get_nearest_possible_right_angle_on_left(x, y, board)
-            except NoMatchingRightAngle:
-                continue
+                y_nearest = PatternFinder._get_nearest_cell_index_on_left(pattern, board)
+                new_pattern = PatternFinder._get_bridge_pattern_from_pattern_and_nearest_suitable_cell_on_left(board, pattern, y_nearest)
+                self.patterns.append(new_pattern)
+            except NoMatchingRightAngle as e:
+                logging.error(e)
 
-            difference = y - y_nearest
-            bridge_letters = board[x][y_nearest] + board[x][y]
-            cells_on_left, cells_on_right = self.get_amount_of_available_cells_outside_the_bridge(difference, x, y, y_nearest, board)
-            max_user_tiles_on_right = self.user_letters_quantity - (difference - 1)
-            index_right = min(max_user_tiles_on_right, cells_on_right)
-            x_coord, y = get_coordinates_base_on_orientation(orientation, x, y_nearest)
-            new_pattern = Pattern(bridge_letters, x_coord, y, cells_on_left, index_right, orientation, difference)
-            self.patterns.append(new_pattern)
+            try:
+                y_nearest = PatternFinder._get_nearest_cell_index_on_right(pattern, board)
+                new_pattern = PatternFinder._get_bridge_pattern_from_pattern_and_nearest_suitable_cell_on_right(board, pattern, y_nearest)
+                self.patterns.append(new_pattern)
+            except NoMatchingRightAngle as e:
+                logging.error(e)
+
+    @staticmethod
+    def _get_nearest_cell_index_on_right(pattern, board):
+        return BOARD_MAX_INDEX - PatternFinder._get_nearest_cell_index_on_left(pattern, PatternFinder.flip_board_horizontally(board), reversed=True)
+
+    @staticmethod
+    def _get_nearest_cell_index_on_left( pattern, board, reversed=False):
+        orientation = pattern.get_orientation()
+        x, y = get_coordinates_from_pattern_with_optional_transposition(pattern)
+        if reversed:
+            y = BOARD_MAX_INDEX - y
+
+        for index in range(2, y + 1):
+            real_x, real_y = get_real_coordinates_according_to_board_orientation(orientation, x, y - index)
+            if check_if_cell_is_empty(board, x, y - index):
+                continue
+            try:
+                check_if_cell_can_be_part_of_bridge_pattern(board, x, y - index, y)
+            except NotPartOfBridgePattern as e:
+                logging.info(f"Cell with letter \"{board[x][y - index]}\" with coordinates ({real_x}, {real_y}) and "
+                      f"{orientation} {e} can not be a part of bridge pattern")
+                raise NoMatchingRightAngle("There is no accessible right angles on left")
+            else:
+                logging.info(f"Matching cell has been found with letter \"{board[x][y - index]}\" with coordinates ({real_x}, {real_y})")
+                return y - index
+        raise NoMatchingRightAngle("There is no accessible right angles on left, only empty cells")
 
     def _create_right_angle_patterns_for_orientation(self, board, orientation):
         for x in range(BOARD_SIZE):
             for y in range(BOARD_SIZE):
-                self._create_all_letter_right_angle_patterns(board, x, y, orientation)
+                try:
+                    self._create_right_angle_pattern(board, x, y, orientation)
+                except NotRightAnglePattern as e:
+                    logging.error(e)
 
-    def _create_all_letter_right_angle_patterns(self, board, x, y, node_orient):
-        if check_if_cell_can_be_right_angle_pattern(board, x, y):
+    def _create_right_angle_pattern(self, board, x, y, node_orient):
+        real_x, real_y = get_real_coordinates_according_to_board_orientation(node_orient, x, y)
+        logging.info(f"Checking if letter \"{board[x][y]}\" on coordinates ({real_x}, {real_y}) can be right angle pattern")
+        try:
+            check_if_cell_can_be_right_angle_pattern(board, x, y)
+        except NotRightAnglePattern as e:
+            logging.warn(f"Cell with coordinates ({real_x}, {real_y}) and {node_orient} {e} can not be right angle pattern")
+        else:
             self._make_right_angle_patterns(node_orient, board, x, y)
 
     def _make_right_angle_patterns(self, orientation, board, x, y):
-        empty_cells_on_left = get_empty_cells_on_the_left(x, y, board)
-        empty_cells_on_right = get_empty_cells_on_the_right(x, y, board)
-        real_x, real_y = get_coordinates_according_to_board_orientation(orientation, x, y)
+        empty_cells_on_left, empty_cells_on_right = get_empty_cells_on_both_sides(x, y, board)
+        real_x, real_y = get_real_coordinates_according_to_board_orientation(orientation, x, y)
         pattern = Pattern(board[x][y].lower(), real_x, real_y, empty_cells_on_left, empty_cells_on_right, orientation)
+        logging.info(f"New right angle pattern - {pattern}")
         self.patterns.append(pattern)
 
-    def _get_nearest_possible_right_angle_on_left(self, x, y, board):
-        cell_index = -1
-        for index in range(y - 1):
-            if not check_if_cell_can_be_right_angle_pattern(board, x, index):
-                continue
-            if not check_if_cell_has_got_no_vertical_neighbors(board, x, index + 1):
-                continue
-            cell_index = index
-
-        if self.user_letters_quantity + 1 >= cell_index >= 0:  # if 8 is difference we can fit 7 letters
-            return cell_index
-        else:
-            raise NoMatchingRightAngle("There is no accessible right angles on left")

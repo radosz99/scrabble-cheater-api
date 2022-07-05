@@ -18,6 +18,18 @@ class NoMatchingRightAngle(Exception):
     pass
 
 
+class NotRightAnglePattern(Exception):
+    pass
+
+
+class NotPartOfBridgePattern(Exception):
+    pass
+
+
+class IncorrectMove(Exception):
+    pass
+
+
 def timing(f):
     @wraps(f)
     def wrap(*args, **kw):

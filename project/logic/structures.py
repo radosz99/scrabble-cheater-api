@@ -2,6 +2,10 @@ from enum import Enum
 from .board_utilities import BoardUtilities
 
 
+def remove_duplicates_from_list(lst):
+    return list(set(lst))
+
+
 class Orientation(Enum):
     HORIZONTAL = 1
     VERTICAL = 2
@@ -115,7 +119,10 @@ class Move:
             return str(x) + '_' + str(chr(65 + y))
 
     def __str__(self):
-        return f" {self._position}, word = {self._word}, points = {self._points}"
+        return f"{self._position}, word = {self._word}, points = {self._points}"
+
+    def __repr__(self):
+        return f"{self._position}, word = {self._word}, points = {self._points}"
 
     def __hash__(self):
         return hash(('position', self._position, 'word', self._word))
@@ -132,6 +139,9 @@ class Move:
     def get_position(self):
         return self._position
 
+    def get_start_coordinates(self):
+        return self._start_x, self._start_y
+
     def get_orientation(self):
         return self._orientation
 
@@ -140,3 +150,6 @@ class Move:
 
     def get_word(self):
         return self._word
+
+    def get_letters_list(self):
+        return self._letters_list
