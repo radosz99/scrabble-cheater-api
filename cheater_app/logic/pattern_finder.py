@@ -1,10 +1,8 @@
-import logging
-
-from .structures import WordType, Orientation, Letter, remove_duplicates_from_list
+from .structures import WordType, Orientation, Letter
+from .utils import remove_duplicates_from_list
 from .exceptions import NoMatchingRightAngle, NotRightAnglePattern, NotPartOfBridgePattern
-from .variables import BOARD_SIZE, BOARD_MAX_INDEX, BOARD_MIN_INDEX, BOARD_MIDDLE
-
-logging.basicConfig(filename='demo.log', level=logging.DEBUG)
+from .constants import BOARD_SIZE, BOARD_MAX_INDEX, BOARD_MIN_INDEX, BOARD_MIDDLE
+from cheater_app.logger import logger
 
 
 class Pattern:
@@ -199,8 +197,7 @@ def get_amount_of_available_cells_outside_the_bridge(x, y, y_coord, board):
 
 
 class PatternFinder:
-    def __init__(self, user_letters_quantity):
-        self.user_letters_quantity = user_letters_quantity
+    def __init__(self):
         self.patterns = []
 
     def create_patterns(self, board):
@@ -244,21 +241,21 @@ class PatternFinder:
         for pattern in self.patterns:
             if pattern.get_orientation() != orientation or pattern.get_word_type() is WordType.BRIDGE:
                 continue
-            logging.info(f"Looking for nearest matching cell for pattern = {pattern}")
+            logger.debug(f"Looking for nearest matching cell for pattern = {pattern}")
 
             try:
                 y_nearest = PatternFinder._get_nearest_cell_index_on_left(pattern, board)
                 new_pattern = PatternFinder._get_bridge_pattern_from_pattern_and_nearest_suitable_cell_on_left(board, pattern, y_nearest)
                 self.patterns.append(new_pattern)
             except NoMatchingRightAngle as e:
-                logging.error(e)
+                logger.debug(e)
 
             try:
                 y_nearest = PatternFinder._get_nearest_cell_index_on_right(pattern, board)
                 new_pattern = PatternFinder._get_bridge_pattern_from_pattern_and_nearest_suitable_cell_on_right(board, pattern, y_nearest)
                 self.patterns.append(new_pattern)
             except NoMatchingRightAngle as e:
-                logging.error(e)
+                logger.debug(e)
 
     @staticmethod
     def _get_nearest_cell_index_on_right(pattern, board):
@@ -278,11 +275,11 @@ class PatternFinder:
             try:
                 check_if_cell_can_be_part_of_bridge_pattern(board, x, y - index, y)
             except NotPartOfBridgePattern as e:
-                logging.info(f"Cell with letter \"{board[x][y - index]}\" with coordinates ({real_x}, {real_y}) and "
-                      f"{orientation} {e} can not be a part of bridge pattern")
+                logger.debug(f"Cell with letter \"{board[x][y - index]}\" with coordinates ({real_x}, {real_y}) and "
+                             f"{orientation} {e} can not be a part of bridge pattern")
                 raise NoMatchingRightAngle("There is no accessible right angles on left")
             else:
-                logging.info(f"Matching cell has been found with letter \"{board[x][y - index]}\" with coordinates ({real_x}, {real_y})")
+                logger.debug(f"Matching cell has been found with letter \"{board[x][y - index]}\" with coordinates ({real_x}, {real_y})")
                 return y - index
         raise NoMatchingRightAngle("There is no accessible right angles on left, only empty cells")
 
@@ -292,15 +289,15 @@ class PatternFinder:
                 try:
                     self._create_right_angle_pattern(board, x, y, orientation)
                 except NotRightAnglePattern as e:
-                    logging.error(e)
+                    logger.debug(e)
 
     def _create_right_angle_pattern(self, board, x, y, node_orient):
         real_x, real_y = get_real_coordinates_according_to_board_orientation(node_orient, x, y)
-        logging.info(f"Checking if letter \"{board[x][y]}\" on coordinates ({real_x}, {real_y}) can be right angle pattern")
+        logger.debug(f"Checking if letter \"{board[x][y]}\" on coordinates ({real_x}, {real_y})")
         try:
             check_if_cell_can_be_right_angle_pattern(board, x, y)
         except NotRightAnglePattern as e:
-            logging.warn(f"Cell with coordinates ({real_x}, {real_y}) and {node_orient} {e} can not be right angle pattern")
+            logger.debug(f"Cell with coordinates ({real_x}, {real_y}) and {node_orient} {e} ")
         else:
             self._make_right_angle_patterns(node_orient, board, x, y)
 
@@ -308,6 +305,6 @@ class PatternFinder:
         empty_cells_on_left, empty_cells_on_right = get_empty_cells_on_both_sides(x, y, board)
         real_x, real_y = get_real_coordinates_according_to_board_orientation(orientation, x, y)
         pattern = Pattern(board[x][y].lower(), real_x, real_y, empty_cells_on_left, empty_cells_on_right, orientation)
-        logging.info(f"New right angle pattern - {pattern}")
+        logger.info(f"New right angle pattern - {pattern}")
         self.patterns.append(pattern)
 

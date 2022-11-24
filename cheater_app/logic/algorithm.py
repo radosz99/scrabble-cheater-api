@@ -1,88 +1,106 @@
-from .anagram import find_anagrams
-from .structures import Orientation, Move, WordType, Country, remove_duplicates_from_list
-from .pattern_finder import PatternFinder, Pattern
-from .exceptions import WordDoesNotMatchToPattern, timing
-from .variables import BOARD_SIZE
-from .board_utilities import BoardUtilities
-import operator
 import copy
+
+from .anagram import find_anagrams
+from .structures import Orientation, Move, WordType, Country
+from . import utils
+from .pattern_finder import PatternFinder, Pattern
+from .exceptions import WordDoesNotMatchToPattern
+from . import constants
+from .board_utilities import BoardUtilities
+from cheater_app.logger import logger
 
 
 class Algorithm:
-    def __init__(self, letters, board):
+    def __init__(self, letters, board, country):
         self.letters = letters.lower()
         self.board = board
-        self.patterns = self._get_patterns()
-        self.board_utilities = BoardUtilities()
+        self.country = country
+        self.patterns = self.__get_patterns()
+        self.board_utilities = BoardUtilities(country)
 
-    def _get_patterns(self):
-        pattern_finder = PatternFinder(len(self.letters))
+    def __get_patterns(self):
+        logger.info(f"Looking for patterns on board: {self.get_board_string()}")
+        pattern_finder = PatternFinder()
         patterns = pattern_finder.create_patterns(self.board)
+        logger.info(f"Created patterns = {patterns}")
         return patterns
 
     def algorithm_engine(self, trie):
-        sorted_list_of_valid_moves = self.get_moves(trie)
+        logger.info("Starting algorithm engine")
+        sorted_list_of_valid_moves = self.__get_moves(trie)
         return self.convert_moves_to_json(sorted_list_of_valid_moves)
 
-    def get_moves(self, trie):
-        if self._check_if_board_is_clear():
-            return self._get_valid_moves_from_clear_board(find_anagrams(str(self.letters), trie))
+    @utils.timing
+    def __get_moves(self, trie):
+        if self.__check_if_board_is_clear():
+            logger.info("Board is clear, getting move from clear board")
+            return self.__get_valid_moves_from_clear_board(find_anagrams(str(self.letters), trie))
         else:
-            anagrams = find_anagrams(str(self.letters) + self._get_letters_from_board(), trie)
-            return self._get_valid_moves(anagrams)
+            letters_for_anagram = str(self.letters) + self.__get_letters_from_board()
+            logger.info(f"Board is not clear, looking for anagrams from letters = {letters_for_anagram}")
+            anagrams = find_anagrams(letters_for_anagram, trie)
+            logger.info(f"Created {len(anagrams)} anagrams = {anagrams}")
+            return self.__get_valid_moves(anagrams)
 
-    def _get_valid_moves_from_clear_board(self, anagrams):
+    def __get_valid_moves_from_clear_board(self, anagrams):
         moves = []
-        for anagram in anagrams:
-            moves.extend(self._get_all_possibilities_for_anagram_in_clear_board(anagram))
-        return Algorithm.sort_moves(moves)
+        for index, word in enumerate(anagrams):
+            logger.info(f"Getting moves from word = {word}, progress = {index}/{len(anagrams)}")
+            move_options = self.__get_all_possibilities_for_anagram_in_clear_board(word)
+            logger.info(f"Created move options = {move_options}")
+            moves.extend(move_options)
+        return utils.get_sorted_list_by_attribute(moves, "_points")
 
-    def _get_all_possibilities_for_anagram_in_clear_board(self, anagram):
-        return [self._get_move_instance_from_anagram_and_index(anagram, i) for i in range(len(anagram))]
+    def __get_all_possibilities_for_anagram_in_clear_board(self, anagram):
+        return [self.__get_move_instance_from_anagram_and_index(anagram, i) for i in range(len(anagram))]
 
-    def _get_move_instance_from_anagram_and_index(self, anagram, i):
+    def __get_move_instance_from_anagram_and_index(self, anagram, i):
         pattern = Pattern(orientation=Orientation.HORIZONTAL)
         return Move(anagram, self.board_utilities, i, pattern)
 
-    def _check_if_board_is_clear(self):
-        for x in range(BOARD_SIZE):
-            for y in range(BOARD_SIZE):
+    def __check_if_board_is_clear(self):
+        for x in range(constants.BOARD_SIZE):
+            for y in range(constants.BOARD_SIZE):
                 if self.board[x][y] != ' ':
                     return False
         return True
 
-    def _get_moves_base_on_word_type(self, pattern, anagram):
+    def __get_moves_by_word_type(self, pattern, anagram):
         if pattern.get_word_type() is WordType.RIGHT_ANGLE:
-            return self._get_right_angle_moves(anagram, pattern)
+            return self.__get_right_angle_moves(anagram, pattern)
         elif pattern.get_word_type() is WordType.BRIDGE:
-            return self._get_bridge_moves(anagram, pattern)
+            return self.__get_bridge_moves(anagram, pattern)
 
-    def _get_valid_moves(self, anagrams):
+    def __get_valid_moves(self, anagrams):
         moves = []
-        for anagram in anagrams:
+        for index, word in enumerate(anagrams):
+            logger.info(f"Getting moves from word = {word}, progress = {index}/{len(anagrams)}")
             for pattern in self.patterns:
-                if self._check_if_pattern_match_to_anagram(pattern, anagram):
-                    moves.extend(self._get_moves_base_on_word_type(pattern, anagram))
-        moves = remove_duplicates_from_list(moves)
+                logger.info(f"For pattern = {pattern}")
+                if self.__check_if_pattern_match_to_anagram(pattern, anagram):
+                    moves_from_word = self.__get_moves_by_word_type(pattern, anagram)
+                    logger.info(f"Pattern matched, moves = {moves_from_word}")
+                    moves.extend(moves_from_word)
+        moves = utils.remove_duplicates_from_list(moves)
         return self.sort_moves(moves)
 
-    def _check_if_word_without_pattern_letters_has_only_user_letters(self, pattern, word):
+    def __check_if_word_without_pattern_letters_has_only_user_letters(self, pattern, word):
         try:
             word = self.remove_letters_from_string(pattern.get_letters(), word)
             self.check_if_string_contains_given_letters(letters=word, string=self.letters)
         except ValueError:
             raise WordDoesNotMatchToPattern("Word without pattern letters has some not-user letters")
 
-    def _check_if_pattern_match_to_anagram(self, pattern, anagram):
+    def __check_if_pattern_match_to_anagram(self, pattern, anagram):
         try:
             self.check_if_word_has_pattern_letters(pattern, anagram)
-            self._check_if_word_without_pattern_letters_has_only_user_letters(pattern, anagram)
+            self.__check_if_word_without_pattern_letters_has_only_user_letters(pattern, anagram)
         except WordDoesNotMatchToPattern:
             return False
         else:
             return True
 
-    def _get_letters_from_board(self):
+    def __get_letters_from_board(self):
         right_angle_letters, bridges_letters = set(), set()
         for pattern in self.patterns:
             if pattern.get_word_type() == WordType.BRIDGE:
@@ -95,6 +113,12 @@ class Algorithm:
             if first_letter == second_letter:
                 board_letters += first_letter
         return board_letters
+
+    def get_board_string(self):
+        board_string = "\n"
+        for row in self.board:
+            board_string += f"{str(row)}\n"
+        return board_string
 
     @staticmethod
     def get_indexes_with_letter_occurrences_from_string(letter, string):
@@ -173,15 +197,6 @@ class Algorithm:
             return True
         else:
             return False
-
-    @staticmethod
-    def get_sorted_list_by_attribute(list, attr):
-        list.sort(key=operator.attrgetter(attr), reverse=True)
-        return list
-
-    @staticmethod
-    def sort_moves(moves):
-        return Algorithm.get_sorted_list_by_attribute(moves, '_points')
 
     @staticmethod
     def check_if_word_has_pattern_letters(pattern, anagram):

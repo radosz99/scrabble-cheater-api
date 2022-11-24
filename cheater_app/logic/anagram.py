@@ -1,11 +1,15 @@
 from collections import Counter
-import logging
+
+from cheater_app.logger import logger
 
 
 def find_anagrams(letters, trie):
     letter_counts = Counter(letters)
+    logger.info(f"Letters counts = {letter_counts}, looking for anagrams")
     anagrams = anagram_engine(letter_counts, [], trie, len(letters))
-    return [anagram for anagram in anagrams if len(anagram) > 1]
+    anagrams = [anagram for anagram in anagrams if len(anagram) > 1]
+    logger.info(f"Found {len(anagrams)} anagrams")
+    return anagrams
 
 
 def anagram_engine(letter_counts, path, root, word_length):
@@ -46,7 +50,7 @@ def find_word(word, trie):
         return True
     try:
         this_dict = trie[word[0]]
-    except:
+    except (KeyError, IndexError):
         return False
     if find_word(word[1:], this_dict):
         return True

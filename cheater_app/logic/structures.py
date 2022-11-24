@@ -2,10 +2,6 @@ from enum import Enum
 from .board_utilities import BoardUtilities
 
 
-def remove_duplicates_from_list(lst):
-    return list(set(lst))
-
-
 class Orientation(Enum):
     HORIZONTAL = 1
     VERTICAL = 2

@@ -1,31 +1,24 @@
-import json
+from .constants import RESOURCES_PATH
+from . import utils
 
 
 class BoardUtilities:
-    def __init__(self):
+    def __init__(self, country):
+        self.country = country
         self._initialize_data()
 
     def _initialize_data(self):
         self._word_multipliers, self._letter_multipliers = BoardUtilities.get_multipliers()
-        self._letters_values = BoardUtilities.get_letters_values()
+        self._letters_values = self.get_letters_values()
 
-    @staticmethod
-    def get_dictionary_from_file(file_path):
-        with open(file_path, 'r', encoding='utf8') as f:
-            data = f.read()
-        return json.loads(data)
-
-    @staticmethod
-    def get_letters_values():
-        from .variables import get_country, get_resource_path
-        path = f"{get_resource_path()}/{str(get_country().name).lower()}/letters_values.txt"
-        return BoardUtilities.get_dictionary_from_file(path)
+    def get_letters_values(self):
+        path = f"{RESOURCES_PATH}/{self.country.name.lower()}/letters_values.txt"
+        return utils.get_dictionary_from_file(path)
 
     @staticmethod
     def get_multipliers():
-        from .variables import get_resource_path
-        path = f"{get_resource_path()}/multipliers.txt"
-        multipliers = BoardUtilities.get_dictionary_from_file(path)
+        path = f"{RESOURCES_PATH}/multipliers.txt"
+        multipliers = utils.get_dictionary_from_file(path)
         return multipliers['word'], multipliers['letter']
 
     def get_field_letter_multiplier(self, x, y):
