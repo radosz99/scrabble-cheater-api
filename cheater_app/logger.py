@@ -11,13 +11,13 @@ formatter = logging.Formatter(
 
 logger.setLevel(logging.DEBUG)
 
-stream_handler = logging.FileHandler(INFO_LOG_FILE, 'w+')
-stream_handler.setLevel(logging.INFO)
-stream_handler.setFormatter(formatter)
+file_handler_info = logging.FileHandler(INFO_LOG_FILE, 'w+')
+file_handler_info.setLevel(logging.INFO)
+file_handler_info.setFormatter(formatter)
 
 file_handler = logging.FileHandler(DEBUG_LOG_FILE, 'w+')
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(formatter)
 
 logger.addHandler(file_handler)
-logger.addHandler(stream_handler)
+logger.addHandler(file_handler_info)
