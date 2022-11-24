@@ -5,7 +5,6 @@ from . import utils
 from cheater_app.logger import logger
 
 
-
 @utils.timing
 def read_words(country):
     path = f"{RESOURCES_PATH}/{country.lower()}/words.txt"
@@ -17,9 +16,10 @@ def read_words(country):
 def get_trie_for_country(country):
     logger.info(f"Creating trie for a country = {country}")
     words = read_words(country)
-    logger.info(f"Number of words loaded from a dictionary file = {len(words)}")
+    logger.info(f"Number of words loaded from a dictionary file = {len(words)}, creating trie...")
     root = {}
-    for word in words:
+    for index, word in enumerate(words):
+        logger.info(f"Putting word {word} to dict, progress = {index}/{len(words)}")
         this_dict = root
         for letter in word:
             this_dict = this_dict.setdefault(letter, {})
