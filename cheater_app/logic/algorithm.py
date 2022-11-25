@@ -45,10 +45,11 @@ class Algorithm:
     def __get_valid_moves_from_clear_board(self, anagrams):
         moves = []
         for index, word in enumerate(anagrams):
-            logger.info(f"Getting moves from word = {word}, progress = {index}/{len(anagrams)}")
+            logger.debug(f"Getting moves from word = {word}, progress = {index}/{len(anagrams)}")
             move_options = self.__get_all_possibilities_for_anagram_in_clear_board(word)
-            logger.info(f"Created move options = {move_options}")
+            logger.debug(f"Created move options = {move_options}")
             moves.extend(move_options)
+        logger.info(f"Found {len(moves)} words, sorting...")
         return utils.get_sorted_list_by_attribute(moves, "_points")
 
     def __get_all_possibilities_for_anagram_in_clear_board(self, anagram):
@@ -73,15 +74,18 @@ class Algorithm:
 
     def __get_valid_moves(self, anagrams):
         moves = []
+        logger.info("Getting valid moves")
         for index, word in enumerate(anagrams):
-            logger.info(f"Getting moves from word = {word}, progress = {index}/{len(anagrams)}")
+            logger.debug(f"Getting moves from word = {word}, progress = {index}/{len(anagrams)}")
             for pattern in self.patterns:
-                logger.info(f"For pattern = {pattern}")
+                logger.debug(f"For pattern = {pattern}")
                 if self.__check_if_pattern_match_to_anagram(pattern, word):
                     moves_from_word = self.__get_moves_by_word_type(pattern, word)
-                    logger.info(f"Pattern matched, moves = {moves_from_word}")
+                    logger.debug(f"Pattern matched, moves = {moves_from_word}")
                     moves.extend(moves_from_word)
+        logger.info(f"Found {len(moves)} moves, removing duplicates...")
         moves = utils.remove_duplicates_from_list(moves)
+        logger.info(f"{len(moves)} moves remain, sorting...")
         return utils.get_sorted_list_by_attribute(moves, "_points")
 
     def __check_if_word_without_pattern_letters_has_only_user_letters(self, pattern, word):
