@@ -77,8 +77,8 @@ class Algorithm:
             logger.info(f"Getting moves from word = {word}, progress = {index}/{len(anagrams)}")
             for pattern in self.patterns:
                 logger.info(f"For pattern = {pattern}")
-                if self.__check_if_pattern_match_to_anagram(pattern, anagram):
-                    moves_from_word = self.__get_moves_by_word_type(pattern, anagram)
+                if self.__check_if_pattern_match_to_anagram(pattern, word):
+                    moves_from_word = self.__get_moves_by_word_type(pattern, word)
                     logger.info(f"Pattern matched, moves = {moves_from_word}")
                     moves.extend(moves_from_word)
         moves = utils.remove_duplicates_from_list(moves)
