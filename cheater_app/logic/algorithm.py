@@ -82,7 +82,7 @@ class Algorithm:
                     logger.info(f"Pattern matched, moves = {moves_from_word}")
                     moves.extend(moves_from_word)
         moves = utils.remove_duplicates_from_list(moves)
-        return self.sort_moves(moves)
+        return utils.get_sorted_list_by_attribute(moves, "_points")
 
     def __check_if_word_without_pattern_letters_has_only_user_letters(self, pattern, word):
         try:
