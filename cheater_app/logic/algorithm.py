@@ -134,7 +134,7 @@ class Algorithm:
         finally:
             return occurrences_list
 
-    def _get_right_angle_moves(self, word, pattern):
+    def __get_right_angle_moves(self, word, pattern):
         moves = []
         letter = pattern.get_letters()
         occurrences_list = Algorithm.get_indexes_with_letter_occurrences_from_string(letter, word)
@@ -146,7 +146,7 @@ class Algorithm:
                 moves.append(move)
         return moves
 
-    def _get_bridge_moves(self, word, pattern):
+    def __get_bridge_moves(self, word, pattern):
         moves = []
         bridge_letters = pattern.get_letters()
         difference = pattern.get_difference_between_bridge_letters()
