@@ -20,6 +20,9 @@ class Pattern:
     def __str__(self):
         return f" {self._letters}, x = {self._x}, y = {self._y}, lc = {self._empty_cells_on_left}, rc = {self._empty_cells_on_right}, {self._orientation}, diff = {self._difference_between_bridge_letters}, {self._word_type}"
 
+    def __repr__(self):
+        return self.__str__()
+
     def __eq__(self, other):
         coordinates = self._x == other.get_x() and self._y == other.get_y()
         empty_cells = self._empty_cells_on_left == other.get_empty_cells_on_left() and self._empty_cells_on_right == other.get_empty_cells_on_right()

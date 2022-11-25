@@ -39,7 +39,7 @@ class Algorithm:
             letters_for_anagram = str(self.letters) + self.__get_letters_from_board()
             logger.info(f"Board is not clear, looking for anagrams from letters = {letters_for_anagram}")
             anagrams = find_anagrams(letters_for_anagram, trie)
-            logger.info(f"Created {len(anagrams)} anagrams = {anagrams}")
+            logger.debug(f"Created {len(anagrams)} anagrams = {anagrams}")
             return self.__get_valid_moves(anagrams)
 
     def __get_valid_moves_from_clear_board(self, anagrams):
