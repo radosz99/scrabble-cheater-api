@@ -13,6 +13,8 @@ app = Flask(__name__)
 tries = {}
 
 
+# TODO: big refactor needed
+
 def get_trie(country):
     if country not in tries:
         tries[country] = get_trie_for_country(country)

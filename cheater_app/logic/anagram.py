@@ -3,6 +3,7 @@ from collections import Counter
 from cheater_app.logger import logger
 
 
+# TODO: big refactor needed
 def find_anagrams(letters, trie):
     letter_counts = Counter(letters)
     logger.info(f"Letters counts = {letter_counts}, looking for anagrams")
