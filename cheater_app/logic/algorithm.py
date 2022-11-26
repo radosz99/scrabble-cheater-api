@@ -22,7 +22,9 @@ class Algorithm:
         logger.info(f"Looking for patterns on board: {self.get_board_string()}")
         pattern_finder = PatternFinder()
         patterns = pattern_finder.create_patterns(self.board)
-        logger.info(f"Created patterns = {patterns}")
+        logger.info(f"Created patterns:")
+        for pattern in patterns:
+            logger.info(pattern)
         return patterns
 
     def algorithm_engine(self, trie):
@@ -36,8 +38,10 @@ class Algorithm:
             logger.info("Board is clear, getting move from clear board")
             return self.__get_valid_moves_from_clear_board(find_anagrams(str(self.letters), trie))
         else:
-            letters_for_anagram = str(self.letters) + self.__get_letters_from_board()
-            logger.info(f"Board is not clear, looking for anagrams from letters = {letters_for_anagram}")
+            letters_from_board = self.__get_letters_from_board()
+            letters_for_anagram = str(self.letters) + letters_from_board
+            logger.info(f"Board is not clear, looking for anagrams from player letters = {str(self.letters)} and "
+                        f"letters from board = {letters_from_board}")
             anagrams = find_anagrams(letters_for_anagram, trie)
             logger.debug(f"Created {len(anagrams)} anagrams = {anagrams}")
             return self.__get_valid_moves(anagrams)
