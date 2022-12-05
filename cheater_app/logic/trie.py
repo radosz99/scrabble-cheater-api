@@ -1,6 +1,7 @@
 import os
 
 from .constants import RESOURCES_PATH
+from .structures import Country
 from . import utils
 from cheater_app.logger import logger
 
@@ -15,21 +16,32 @@ def read_words(country):
 
 
 @utils.timing
-def create_trie(words):
+def create_trie(words, country):
     root = {}
     for word in words:
         this_dict = root
-        for letter in word:
+        skip_next = False
+        for index, letter in enumerate(word):
+            if skip_next:
+                skip_next = False
+                continue
+            if country == Country.ES:
+                for spanish_double in spanish_doubles:
+                    if index == len(word) - 1:
+                        break
+                    if letter == spanish_double[0] and word[index+1] == spanish_double[1]:
+                        letter = spanish_double
+                        skip_next = True
             this_dict = this_dict.setdefault(letter, {})
         this_dict[None] = None
     return root
 
-
+@utils.timing
 def get_trie_for_country(country):
     logger.info(f"Creating trie for a country = {country}")
-    words = read_words(country)
+    words = read_words(country.name)
     logger.info(f"Number of words loaded from a dictionary file = {len(words)}, creating trie...")
-    trie = create_trie(words)
+    trie = create_trie(words, country)
     return trie
 
-
+spanish_doubles = ['ll', 'rr', 'ch']

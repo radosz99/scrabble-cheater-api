@@ -6,8 +6,8 @@ from cheater_app.logger import logger
 
 
 class Pattern:
-    def __init__(self, letters="", x=BOARD_MIDDLE, y=BOARD_MIDDLE, empty_cells_on_left=0, empty_cells_on_right=0, orientation=None, difference_between_bridge_letters=0):
-        self._letters = str(letters)
+    def __init__(self, letters=None, x=BOARD_MIDDLE, y=BOARD_MIDDLE, empty_cells_on_left=0, empty_cells_on_right=0, orientation=None, difference_between_bridge_letters=0):
+        self._letters = letters
         self._x = x
         self._y = y
         self._empty_cells_on_left = empty_cells_on_left
@@ -31,7 +31,7 @@ class Pattern:
         return coordinates and empty_cells and letters and orientation
 
     def __hash__(self):
-        return hash((self._x, self._y, self._empty_cells_on_right, self._empty_cells_on_left, self._orientation, self._letters))
+        return hash((self._x, self._y, self._empty_cells_on_right, self._empty_cells_on_left, self._orientation, str(self._letters)))
 
     def _create_letters_list(self):
         if self._letters == "":
@@ -50,7 +50,7 @@ class Pattern:
     def get_y(self):
         return self._y
 
-    def get_letters_list(self):
+    def get_letters_instances_list(self):
         return self._letters_list
 
     def get_empty_cells_on_left(self):
@@ -66,6 +66,12 @@ class Pattern:
         return self._orientation
 
     def get_letters(self):
+        if self._word_type == WordType.BRIDGE:
+            return self._letters[0], self._letters[1]
+        else:
+            return self._letters[0]
+
+    def get_letters_list(self):
         return self._letters
 
     def get_word_type(self):
@@ -236,7 +242,7 @@ class PatternFinder:
             y, y_nearest = y_nearest, y
         orientation = pattern.get_orientation()
         difference = y - y_nearest
-        bridge_letters = board[x][y_nearest] + board[x][y]
+        bridge_letters = [board[x][y_nearest], board[x][y]]
         cells_on_left, cells_on_right = get_amount_of_available_cells_outside_the_bridge(x, y, y_nearest, board)
         real_x, real_y = get_real_coordinates_according_to_board_orientation(orientation, x, y_nearest)
         return Pattern(bridge_letters, real_x, real_y, cells_on_left, cells_on_right, orientation, difference)
@@ -314,7 +320,7 @@ class PatternFinder:
     def _make_right_angle_pattern(self, orientation, board, x, y):
         empty_cells_on_left, empty_cells_on_right = get_empty_cells_on_both_sides(x, y, board)
         real_x, real_y = get_real_coordinates_according_to_board_orientation(orientation, x, y)
-        pattern = Pattern(board[x][y].lower(), real_x, real_y, empty_cells_on_left, empty_cells_on_right, orientation)
+        pattern = Pattern([board[x][y].lower()], real_x, real_y, empty_cells_on_left, empty_cells_on_right, orientation)
         logger.debug(f"New right angle pattern - {pattern}")
         self.patterns.append(pattern)
 

@@ -16,7 +16,7 @@ def find_anagrams(letters, trie):
 def anagram_engine(letter_counts, path, root, word_length):
     anagrams = []
     if None in root.keys():
-        word = ''.join(path)
+        word = list(path)
         anagrams.append(word)
     for letter, this_dict in root.items():
         count = letter_counts.get(letter, 0)

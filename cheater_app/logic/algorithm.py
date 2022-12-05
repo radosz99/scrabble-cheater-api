@@ -12,7 +12,7 @@ from cheater_app.logger import logger
 
 class Algorithm:
     def __init__(self, letters, board, country):
-        self.letters = letters.lower()
+        self.letters = list(map(lambda x: x.lower(), letters))
         self.board = board
         self.country = country
         self.patterns = self.__get_patterns()
@@ -36,14 +36,14 @@ class Algorithm:
     def __get_moves(self, trie):
         if self.__check_if_board_is_clear():
             logger.info("Board is clear, getting move from clear board")
-            return self.__get_valid_moves_from_clear_board(find_anagrams(str(self.letters), trie))
+            return self.__get_valid_moves_from_clear_board(find_anagrams(self.letters, trie))
         else:
             letters_from_board = self.__get_letters_from_board()
-            letters_for_anagram = str(self.letters) + letters_from_board
-            logger.info(f"Board is not clear, looking for anagrams from player letters = {str(self.letters)} and "
+            letters_for_anagram = self.letters + letters_from_board
+            logger.info(f"Board is not clear, looking for anagrams from player letters = {self.letters} and "
                         f"letters from board = {letters_from_board}")
             anagrams = find_anagrams(letters_for_anagram, trie)
-            logger.debug(f"Created {len(anagrams)} anagrams = {anagrams}")
+            logger.info(f"Created {len(anagrams)} anagrams = {anagrams}")
             return self.__get_valid_moves(anagrams)
 
     def __get_valid_moves_from_clear_board(self, anagrams):
@@ -83,24 +83,29 @@ class Algorithm:
             for pattern in self.patterns:
                 if self.__check_if_pattern_match_to_anagram(pattern, word):
                     moves_from_word = self.__get_moves_by_word_type(pattern, word)
+                    logger.info(f"Created moves = {moves_from_word}")
                     moves.extend(moves_from_word)
-        logger.info(f"Found {len(moves)} moves, removing duplicates...")
-        moves = utils.remove_duplicates_from_list(moves)
-        logger.info(f"{len(moves)} moves remain, sorting...")
+        logger.info(f"Found {len(moves)} moves")
         return utils.get_sorted_list_by_attribute(moves, "_points")
 
-    def __check_if_word_without_pattern_letters_has_only_user_letters(self, pattern, word):
+    def __check_if_word_contains_only_user_letters(self, word):
+        user_letters_copy = copy.copy(self.letters)
         try:
-            word = self.remove_letters_from_string(pattern.get_letters(), word)
-            self.check_if_string_contains_given_letters(letters=word, string=self.letters)
-        except ValueError:
-            raise WordDoesNotMatchToPattern("Word without pattern letters has some not-user letters")
+            logger.info(f"Checking if word {word} contains only user letters = {user_letters_copy}")
+            self.remove_items_from_list(word, user_letters_copy)
+        except ValueError as e:
+            raise WordDoesNotMatchToPattern(f"Word without pattern letters has some not-user letters - {str(e)}")
 
     def __check_if_pattern_match_to_anagram(self, pattern, anagram):
+        anagram_copy = copy.copy(anagram)
+        logger.info(f"Checking if pattern = {pattern} match to word = {anagram}")
         try:
-            self.check_if_word_has_pattern_letters(pattern, anagram)
-            self.__check_if_word_without_pattern_letters_has_only_user_letters(pattern, anagram)
-        except WordDoesNotMatchToPattern:
+            word_without_pattern_letters = self.check_if_word_has_pattern_letters(pattern, anagram_copy)
+            logger.info(f"Word without letters from pattern = {word_without_pattern_letters}")
+            self.__check_if_word_contains_only_user_letters(word_without_pattern_letters)
+            logger.info("Pattern has matched to anagram")
+        except WordDoesNotMatchToPattern as e:
+            logger.info(f"Word {anagram} does not match to pattern - {pattern}, cause - {str(e)}")
             return False
         else:
             return True
@@ -113,10 +118,12 @@ class Algorithm:
             elif pattern.get_word_type() == WordType.RIGHT_ANGLE:
                 right_angle_letters.add(pattern.get_letters())
 
-        board_letters = ''.join(list(right_angle_letters))
+        board_letters = list(right_angle_letters)
+        logger.debug(f"Board letters before bridges = {board_letters}")
         for first_letter, second_letter in bridges_letters:
             if first_letter == second_letter:
-                board_letters += first_letter
+                board_letters.append(first_letter)
+        logger.debug(f"Board letters = {board_letters}")
         return board_letters
 
     def get_board_string(self):
@@ -139,11 +146,20 @@ class Algorithm:
         finally:
             return occurrences_list
 
+    @staticmethod
+    def get_indexes_of_item_in_list(item, lst):
+        for index, element in enumerate(lst):
+            if item == element:
+                yield index
+
     def __get_right_angle_moves(self, word, pattern):
         moves = []
-        letter = pattern.get_letters()
-        occurrences_list = Algorithm.get_indexes_with_letter_occurrences_from_string(letter, word)
+        letter = pattern.get_letters_list()[0]
+        logger.debug(f"Word = {word}")
+        logger.debug(f"letter from pattern = {letter}")
+        occurrences_list = Algorithm.get_indexes_of_item_in_list(letter, word)
         for index in occurrences_list:
+            logger.debug(f"Index of occurrence = {index}")
             left_space_needed = index
             right_space_needed = len(word) - index - 1
             if left_space_needed <= pattern.get_empty_cells_on_left() and right_space_needed <= pattern.get_empty_cells_on_right():
@@ -169,11 +185,11 @@ class Algorithm:
         return moves
 
     @staticmethod
-    def remove_letters_from_string(letters, string):
-        for letter in letters:
-            index = string.find(letter)
-            string = Algorithm.remove_letter_from_string_by_index(string, index)
-        return string
+    def remove_items_from_list(items, lst):
+        logger.debug(f"Removing {items} from {lst}")
+        for item in items:
+            lst.remove(item)
+        return lst
 
     @staticmethod
     def check_if_string_contains_given_letters(letters, string):
@@ -184,7 +200,7 @@ class Algorithm:
 
     @staticmethod
     def convert_moves_to_json(moves):
-        moves_list = [{'word': move.get_word(), 'points': move.get_points(), 'coordinates': move.get_position()} for
+        moves_list = [{'word': move.get_word_string(), 'points': move.get_points(), 'coordinates': move.get_position()} for
                       move in
                       moves]
         return {'moves': moves_list, 'quantity': len(moves_list)}
@@ -206,6 +222,6 @@ class Algorithm:
     @staticmethod
     def check_if_word_has_pattern_letters(pattern, anagram):
         try:
-            Algorithm.check_if_string_contains_given_letters(pattern.get_letters(), anagram)  # check if word has letters from pattern
+            return Algorithm.remove_items_from_list(pattern.get_letters_list(), anagram)  # check if word has letters from pattern
         except ValueError:
             raise WordDoesNotMatchToPattern("Word does not contain pattern letters")

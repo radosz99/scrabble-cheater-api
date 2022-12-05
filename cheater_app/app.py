@@ -16,9 +16,8 @@ tries = {}
 # TODO: big refactor needed
 
 def get_trie(country):
-    if country not in tries:
-        tries[country] = get_trie_for_country(country)
-    return tries[country]
+    trie = tries.setdefault(country.name, get_trie_for_country(country))
+    return trie
 
 
 @app.route('/best-move/<country>', methods=['POST'])
@@ -28,7 +27,7 @@ def get_best_move(country):
     try:
         letters, board = data["letters"], data["board"]
         algorithm = Algorithm(letters, board, country)
-        best_moves = algorithm.algorithm_engine(get_trie(country.name))
+        best_moves = algorithm.algorithm_engine(get_trie(country))
         return jsonify(best_moves)
     except NotSupportedCountry as e:
         abort(405, description=e)

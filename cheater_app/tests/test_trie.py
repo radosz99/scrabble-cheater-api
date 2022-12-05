@@ -14,10 +14,10 @@ class Testing(unittest.TestCase):
         logger.addHandler(stream_handler)
 
     def test_speed_of_creating_gb_trie(self):
-        trie.get_trie_for_country(structures.Country.GB.name)
+        trie.get_trie_for_country(structures.Country.GB)
 
     def test_speed_of_creating_pl_trie(self):
-        trie.get_trie_for_country(structures.Country.PL.name)
+        trie.get_trie_for_country(structures.Country.PL)
 
 
 if __name__ == "__main__":

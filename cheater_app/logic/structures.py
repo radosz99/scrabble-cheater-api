@@ -15,6 +15,7 @@ class WordType(Enum):
 class Country(Enum):
     PL = 1
     GB = 2
+    ES = 3
 
 
 class Letter:
@@ -59,7 +60,7 @@ class Move:
         self._points = self._evaluate_move()
 
     def _check_if_letter_not_from_board(self, letter):
-        return False if letter in self._pattern.get_letters_list() else True
+        return False if letter in self._pattern.get_letters_instances_list() else True
 
     def _get_letter_instance_from_index_and_char(self, index, char):
         x, y = self.get_x_letter_coordinates(index)
@@ -146,6 +147,9 @@ class Move:
 
     def get_word(self):
         return self._word
+
+    def get_word_string(self):
+        return ''.join(self._word)
 
     def get_letters_list(self):
         return self._letters_list
