@@ -31,19 +31,9 @@ def anagram_engine(letter_counts, path, root, word_length):
     return anagrams
 
 
-def find_words(words, trie):
-    response = {'status': True}
-    words_status = []
-    for word in words:
-        word_status = {'word': word}
-        if find_word(word, trie):
-            word_status['exist'] = True
-        else:
-            word_status['exist'] = False
-            response['status'] = False
-        words_status.append(word_status)
-    response['details'] = words_status
-    return response
+def validate_words(words, trie):
+    details = [{'word': word, "exist": True if find_word(word, trie) else False} for word in words]
+    return {'details': details, 'status': True if all([status['exist'] for status in details]) else False}
 
 
 def find_word(word, trie):
@@ -51,9 +41,7 @@ def find_word(word, trie):
         return True
     try:
         this_dict = trie[word[0]]
+        return True if find_word(word[1:], this_dict) else False
     except (KeyError, IndexError):
         return False
-    if find_word(word[1:], this_dict):
-        return True
-    else:
-        return False
+

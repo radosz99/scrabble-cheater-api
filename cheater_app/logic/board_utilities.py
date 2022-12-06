@@ -1,5 +1,5 @@
-from .constants import RESOURCES_PATH
-from . import utils
+from cheater_app.logic.constants import RESOURCES_PATH
+from cheater_app.logic import utils
 
 
 class BoardUtilities:
@@ -14,6 +14,9 @@ class BoardUtilities:
     def get_letters_values(self):
         path = f"{RESOURCES_PATH}/{self.country.name.lower()}/letters_values.txt"
         return utils.get_dictionary_from_file(path)
+
+    def check_if_letter_valid_in_country(self, letter):
+        return letter in self.get_letters_values()
 
     @staticmethod
     def get_multipliers():

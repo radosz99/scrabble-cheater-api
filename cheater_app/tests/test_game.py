@@ -3,7 +3,7 @@ import logging
 
 from cheater_app.logic import algorithm
 from cheater_app.logic.structures import Country
-from cheater_app.logic.trie import get_trie_for_country
+from cheater_app.logic.trie import create_trie_for_country
 from cheater_app.logger import logger, formatter
 
 
@@ -34,7 +34,7 @@ class Testing(unittest.TestCase):
 
     def test_core(self):
         country = Country.ES
-        trie = get_trie_for_country(country)
+        trie = create_trie_for_country(country)
         alg = algorithm.Algorithm(['a'], board, country)
         best_moves = alg.algorithm_engine(trie)
         logger.info(best_moves)

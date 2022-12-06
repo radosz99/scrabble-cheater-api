@@ -1,11 +1,16 @@
-from flask import Flask, jsonify, request, abort
+import traceback
+import functools
 
-from .logic.trie import get_trie_for_country
-from .logic.algorithm import Algorithm
-from .logic.anagram import find_words
-from .logic.exceptions import NotSupportedCountry
-from .logic.structures import Country
-from .logic import utils
+from flask import Flask, jsonify, request, abort
+from marshmallow import ValidationError
+
+from cheater_app.logic.trie import create_trie_for_country
+from cheater_app.logic.algorithm import Algorithm
+from cheater_app.logic.anagram import validate_words
+from cheater_app.logic import exceptions as exc
+from cheater_app.logic.structures import Country
+from cheater_app.logic.constants import BOARD_SIZE
+from cheater_app.logic import utils
 from cheater_app.logger import logger
 
 app = Flask(__name__)
@@ -13,47 +18,54 @@ app = Flask(__name__)
 tries = {}
 
 
-# TODO: big refactor needed
+@functools.lru_cache(maxsize=16)
+def create_trie(country):
+    return create_trie_for_country(country)
+
 
 def get_trie(country):
-    trie = tries.setdefault(country.name, get_trie_for_country(country))
-    return trie
+    logger.info(f"Current dictionaries: {tries.keys()}")
+    return tries.setdefault(country.name, create_trie(country))
+
+
+def get_country_via_abbreviation(country_abb):
+    try:
+        return Country[country_abb.upper()]
+    except KeyError as e:
+        logger.debug(f"Could not get country with name {country_abb}, cause - {str(e)}")
+        raise exc.NotSupportedCountryException(f"Country with abbreviation {country_abb} is not supported. List of "
+                                               f"supported countries = {[e.name for e in Country]}")
 
 
 @app.route('/best-move/<country>', methods=['POST'])
 def get_best_move(country):
-    country = Country[country.upper()]
-    data = request.get_json()
     try:
-        letters, board = data["letters"], data["board"]
+        country = get_country_via_abbreviation(country)
+        data = request.get_json()
+        body = utils.BestMoveRequestBody()
+        result = body.load(data)
+        letters, board = result['letters'], result['board']
         algorithm = Algorithm(letters, board, country)
         best_moves = algorithm.algorithm_engine(get_trie(country))
         return jsonify(best_moves)
-    except NotSupportedCountry as e:
-        abort(405, description=e)
-    except TypeError as e:
-        logger.info(f"Missing parameters in request - {str(e)}")
-        abort(400, description="No letters or no board, how can I handle it?")
-    except (KeyError, IndexError) as e:
-        logger.info(f"Invalid format of parameters - {str(e)}")
-        abort(422, description="Syntax is correct, but not possible to process it, "
-                               "make sure you provide words in appropriate format")
+    except (exc.BaseCheaterException, ValidationError) as e:
+        logger.debug(e)
+        return jsonify({"detail": str(e), "error": e.__class__.__name__}), 400
 
 
 @app.route('/check-words/<country>', methods=['POST'])
-def check_if_word_in_dict(country):
-    data = request.get_json()
+def validate_words_in_country_dictionary(country):
     try:
-        words_json = data["words"]
-        words = [word for word in words_json]
-        return jsonify(find_words(words, get_trie(country)))
-    except TypeError as e:
-        logger.info(f"Missing parameters in request - {str(e)}")
-        abort(400, description="Request does not contain any words?")
-    except (KeyError, IndexError) as e:
-        logger.info(f"Invalid format of parameters - {str(e)}")
-        abort(422, description="Syntax is correct, but not possible to process it, "
-                               "make sure you provide words in appropriate format")
+        country = get_country_via_abbreviation(country)
+        data = request.get_json()
+        body = utils.WordValidationRequestBody()
+        result = body.load(data)
+        words = result['words']
+        validation_result = validate_words(words, get_trie(country))
+        return jsonify(validation_result)
+    except (exc.BaseCheaterException, ValidationError) as e:
+        logger.debug(e)
+        return jsonify({"detail": str(e), "error": e.__class__.__name__}), 400
 
 
 @app.before_request

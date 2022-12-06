@@ -1,6 +1,7 @@
 from enum import Enum
-from .board_utilities import BoardUtilities
 
+from cheater_app.logic.board_utilities import BoardUtilities
+from cheater_app.logger import logger
 
 class Orientation(Enum):
     HORIZONTAL = 1
@@ -96,7 +97,8 @@ class Move:
         return value * multiplier + seven_letters_bonus
 
     def _check_if_seven_letters_move(self):
-        if len(self.get_word()) - len(self.get_pattern().get_letters()) == 7:
+        logger.debug(f"Checking if seven letters move, word = {self.get_word()}, pattern letters = {self.get_pattern().get_letters_list()}")
+        if len(self.get_word()) - len(self.get_pattern().get_letters_list()) == 7:
             return True
         else:
             return False

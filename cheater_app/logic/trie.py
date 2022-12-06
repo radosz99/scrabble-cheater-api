@@ -1,13 +1,13 @@
 import os
 
-from .constants import RESOURCES_PATH
-from .structures import Country
-from . import utils
+from cheater_app.logic.constants import RESOURCES_PATH
+from cheater_app.logic.structures import Country
+from cheater_app.logic import utils
 from cheater_app.logger import logger
 
 
 @utils.timing
-def read_words(country):
+def get_words_from_dictionary_file(country):
     path = f"{RESOURCES_PATH}/{country.lower()}/words.txt"
     logger.info(f"Trying to load words from file with path = {path}")
     with open(path, "r") as f:
@@ -25,10 +25,8 @@ def create_trie(words, country):
             if skip_next:
                 skip_next = False
                 continue
-            if country == Country.ES:
+            if country == Country.ES and index < len(word) - 1:
                 for spanish_double in spanish_doubles:
-                    if index == len(word) - 1:
-                        break
                     if letter == spanish_double[0] and word[index+1] == spanish_double[1]:
                         letter = spanish_double
                         skip_next = True
@@ -36,12 +34,15 @@ def create_trie(words, country):
         this_dict[None] = None
     return root
 
+
 @utils.timing
-def get_trie_for_country(country):
+def create_trie_for_country(country, words=None):
     logger.info(f"Creating trie for a country = {country}")
-    words = read_words(country.name)
+    if not words:
+        words = get_words_from_dictionary_file(country.name)
     logger.info(f"Number of words loaded from a dictionary file = {len(words)}, creating trie...")
     trie = create_trie(words, country)
     return trie
+
 
 spanish_doubles = ['ll', 'rr', 'ch']

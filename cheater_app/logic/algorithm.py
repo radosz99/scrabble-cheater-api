@@ -1,12 +1,12 @@
 import copy
 
-from .anagram import find_anagrams
-from .structures import Orientation, Move, WordType, Country
-from . import utils
-from .pattern_finder import PatternFinder, Pattern
-from .exceptions import WordDoesNotMatchToPattern
-from . import constants
-from .board_utilities import BoardUtilities
+from cheater_app.logic.anagram import find_anagrams
+from cheater_app.logic.structures import Orientation, Move, WordType, Country
+from cheater_app.logic import utils
+from cheater_app.logic.pattern_finder import PatternFinder, Pattern
+from cheater_app.logic import exceptions as exc
+from cheater_app.logic import constants
+from cheater_app.logic.board_utilities import BoardUtilities
 from cheater_app.logger import logger
 
 
@@ -17,6 +17,7 @@ class Algorithm:
         self.country = country
         self.patterns = self.__get_patterns()
         self.board_utilities = BoardUtilities(country)
+        self.validate_letters_on_board()
 
     def __get_patterns(self):
         logger.info(f"Looking for patterns on board: {self.get_board_string()}")
@@ -26,6 +27,12 @@ class Algorithm:
         for pattern in patterns:
             logger.info(pattern)
         return patterns
+
+    def validate_letters_on_board(self):
+        for row in self.board:
+            for cell in row:
+                if not self.board_utilities.check_if_letter_valid_in_country(cell) and cell != ' ':
+                    raise exc.InvalidLettersOnBoardException(f"Letter '{cell}' is not supported for country {self.country.name}")
 
     def algorithm_engine(self, trie):
         logger.info("Starting algorithm engine")
@@ -83,7 +90,7 @@ class Algorithm:
             for pattern in self.patterns:
                 if self.__check_if_pattern_match_to_anagram(pattern, word):
                     moves_from_word = self.__get_moves_by_word_type(pattern, word)
-                    logger.info(f"Created moves = {moves_from_word}")
+                    logger.debug(f"Created moves = {moves_from_word}")
                     moves.extend(moves_from_word)
         logger.info(f"Found {len(moves)} moves")
         return utils.get_sorted_list_by_attribute(moves, "_points")
@@ -91,21 +98,21 @@ class Algorithm:
     def __check_if_word_contains_only_user_letters(self, word):
         user_letters_copy = copy.copy(self.letters)
         try:
-            logger.info(f"Checking if word {word} contains only user letters = {user_letters_copy}")
+            logger.debug(f"Checking if word {word} contains only user letters = {user_letters_copy}")
             self.remove_items_from_list(word, user_letters_copy)
         except ValueError as e:
-            raise WordDoesNotMatchToPattern(f"Word without pattern letters has some not-user letters - {str(e)}")
+            raise exc.WordDoesNotMatchToPattern(f"Word without pattern letters has some not-user letters - {str(e)}")
 
     def __check_if_pattern_match_to_anagram(self, pattern, anagram):
         anagram_copy = copy.copy(anagram)
-        logger.info(f"Checking if pattern = {pattern} match to word = {anagram}")
+        logger.debug(f"Checking if pattern = {pattern} match to word = {anagram}")
         try:
             word_without_pattern_letters = self.check_if_word_has_pattern_letters(pattern, anagram_copy)
-            logger.info(f"Word without letters from pattern = {word_without_pattern_letters}")
+            logger.debug(f"Word without letters from pattern = {word_without_pattern_letters}")
             self.__check_if_word_contains_only_user_letters(word_without_pattern_letters)
-            logger.info("Pattern has matched to anagram")
-        except WordDoesNotMatchToPattern as e:
-            logger.info(f"Word {anagram} does not match to pattern - {pattern}, cause - {str(e)}")
+            logger.debug("Pattern has matched to anagram")
+        except exc.WordDoesNotMatchToPatternException as e:
+            logger.debug(f"Word {anagram} does not match to pattern - {pattern}, cause - {str(e)}")
             return False
         else:
             return True
@@ -224,4 +231,4 @@ class Algorithm:
         try:
             return Algorithm.remove_items_from_list(pattern.get_letters_list(), anagram)  # check if word has letters from pattern
         except ValueError:
-            raise WordDoesNotMatchToPattern("Word does not contain pattern letters")
+            raise exc.WordDoesNotMatchToPatternException("Word does not contain pattern letters")

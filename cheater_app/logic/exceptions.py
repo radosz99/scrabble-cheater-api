@@ -1,28 +1,41 @@
-class NotSupportedCountry(Exception):
+from datetime import datetime
+
+
+class BaseCheaterException(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+        self.timestamp = datetime.now()
+
+
+class NotSupportedCountryException(BaseCheaterException):
     pass
 
 
-class IncorrectlyFormattedFile(Exception):
+class InvalidLettersOnBoardException(BaseCheaterException):
     pass
 
 
-class WordDoesNotMatchToPattern(Exception):
+class IncorrectlyFormattedFileException(BaseCheaterException):
     pass
 
 
-class NoMatchingRightAngle(Exception):
+class WordDoesNotMatchToPatternException(BaseCheaterException):
     pass
 
 
-class NotRightAnglePattern(Exception):
+class NoMatchingRightAngleException(BaseCheaterException):
     pass
 
 
-class NotPartOfBridgePattern(Exception):
+class NotRightAnglePatternException(BaseCheaterException):
     pass
 
 
-class IncorrectMove(Exception):
+class NotPartOfBridgePatternException(BaseCheaterException):
+    pass
+
+
+class IncorrectMoveException(BaseCheaterException):
     pass
 
 
