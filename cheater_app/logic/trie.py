@@ -26,10 +26,7 @@ def create_trie(words, country):
                 skip_next = False
                 continue
             if country == Country.ES and index < len(word) - 1:
-                for spanish_double in spanish_doubles:
-                    if letter == spanish_double[0] and word[index+1] == spanish_double[1]:
-                        letter = spanish_double
-                        skip_next = True
+                letter, skip_next = check_if_contains_spanish_doubles(word, index)
             this_dict = this_dict.setdefault(letter, {})
         this_dict[None] = None
     return root
@@ -45,4 +42,9 @@ def create_trie_for_country(country, words=None):
     return trie
 
 
-spanish_doubles = ['ll', 'rr', 'ch']
+def check_if_contains_spanish_doubles(word, index):
+    if (double := word[index:index + 2]) in ['ll', 'rr', 'ch']:
+        return double, True
+    else:
+        return word[index], False
+

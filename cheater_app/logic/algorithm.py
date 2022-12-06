@@ -12,7 +12,7 @@ from cheater_app.logger import logger
 
 class Algorithm:
     def __init__(self, letters, board, country):
-        self.letters = list(map(lambda x: x.lower(), letters))
+        self.letters = [letter.lower() for letter in letters]
         self.board = board
         self.country = country
         self.patterns = self.__get_patterns()
@@ -101,7 +101,7 @@ class Algorithm:
             logger.debug(f"Checking if word {word} contains only user letters = {user_letters_copy}")
             self.remove_items_from_list(word, user_letters_copy)
         except ValueError as e:
-            raise exc.WordDoesNotMatchToPattern(f"Word without pattern letters has some not-user letters - {str(e)}")
+            raise exc.WordDoesNotMatchToPatternException(f"Word without pattern letters has some not-user letters - {str(e)}")
 
     def __check_if_pattern_match_to_anagram(self, pattern, anagram):
         anagram_copy = copy.copy(anagram)
@@ -140,20 +140,6 @@ class Algorithm:
         return board_string
 
     @staticmethod
-    def get_indexes_with_letter_occurrences_from_string(letter, string):
-        letter_occurrences = string.count(letter)
-        occurrences_list = []
-        try:
-            for x in range(letter_occurrences):
-                index = string.index(letter)
-                occurrences_list.append(index + x)
-                string = Algorithm.remove_letter_from_string_by_index(string, index)
-        except ValueError:
-            pass
-        finally:
-            return occurrences_list
-
-    @staticmethod
     def get_indexes_of_item_in_list(item, lst):
         for index, element in enumerate(lst):
             if item == element:
@@ -162,8 +148,7 @@ class Algorithm:
     def __get_right_angle_moves(self, word, pattern):
         moves = []
         letter = pattern.get_letters_list()[0]
-        logger.debug(f"Word = {word}")
-        logger.debug(f"letter from pattern = {letter}")
+        logger.debug(f"Word = {word}, letter from pattern = {letter}")
         occurrences_list = Algorithm.get_indexes_of_item_in_list(letter, word)
         for index in occurrences_list:
             logger.debug(f"Index of occurrence = {index}")
@@ -178,7 +163,7 @@ class Algorithm:
         moves = []
         bridge_letters = pattern.get_letters()
         difference = pattern.get_difference_between_bridge_letters()
-        first_letter_occurrences = Algorithm.get_indexes_with_letter_occurrences_from_string(bridge_letters[0], word)
+        first_letter_occurrences = Algorithm.get_indexes_of_item_in_list(bridge_letters[0], word)
         for first_letter_occurrence in first_letter_occurrences:
             try:
                 if word[first_letter_occurrence + difference] != bridge_letters[1]:

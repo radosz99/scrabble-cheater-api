@@ -14,7 +14,7 @@ board = [
 [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
 [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
 [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-[' ', ' ', ' ', ' ', ' ', ' ', ' ', 'ch', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+[' ', ' ', ' ', ' ', ' ', ' ', ' ', 'ch', ' ', 't', ' ', ' ', ' ', ' ', ' '],
 [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
 [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
 [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
@@ -35,7 +35,7 @@ class Testing(unittest.TestCase):
     def test_core(self):
         country = Country.ES
         trie = create_trie_for_country(country)
-        alg = algorithm.Algorithm(['a'], board, country)
+        alg = algorithm.Algorithm(['a', 'o'], board, country)
         best_moves = alg.algorithm_engine(trie)
         logger.info(best_moves)
 

@@ -22,8 +22,9 @@ class Testing(unittest.TestCase):
         trie.create_trie_for_country(structures.Country.PL)
 
     def test_speed_of_creating_es_trie(self):
-        dict_trie = trie.create_trie_for_country(structures.Country.ES, ["cha", "chacha"])
+        dict_trie = trie.create_trie_for_country(structures.Country.ES, ["cha", "chacha", "lallarr"])
         print(dict_trie)
+
 
 if __name__ == "__main__":
     unittest.main()
