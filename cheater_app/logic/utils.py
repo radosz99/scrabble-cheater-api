@@ -6,6 +6,7 @@ from time import time
 from marshmallow import Schema, fields, ValidationError, validates
 
 from cheater_app.logger import logger
+from cheater_app.logic.constants import BOARD_SIZE
 
 
 def timing(f):
