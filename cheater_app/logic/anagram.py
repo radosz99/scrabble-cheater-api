@@ -3,7 +3,7 @@ from collections import Counter
 from cheater_app.logger import logger
 from cheater_app.logic import utils
 
-
+@utils.timing
 def find_anagrams(letters, trie):
     letters = [letter.lower() for letter in letters]
     letter_counts = Counter(letters)
@@ -14,7 +14,6 @@ def find_anagrams(letters, trie):
     return anagrams
 
 
-@utils.timing
 def anagram_engine(letter_counts, path, root, word_length):
     anagrams = []
     if None in root.keys():
