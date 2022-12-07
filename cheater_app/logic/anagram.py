@@ -32,8 +32,12 @@ def anagram_engine(letter_counts, path, root, word_length):
     return anagrams
 
 
-def validate_words(words, trie):
-    details = [{'word': word, "exist": True if find_word(word, trie) else False} for word in words]
+def validate_words(words, trie, country):
+    logger.debug(f"Validating list of words = {words}")
+    words_as_lists = [utils.parse_letters_string(word, country) for word in words]
+    logger.debug(f"Parsed = {words_as_lists}")
+    details = [{'word': word, "exist": True if find_word(word, trie) else False} for word in words_as_lists]
+    logger.debug(f"Validation result = {details}")
     return {'details': details, 'status': True if all([status['exist'] for status in details]) else False}
 
 

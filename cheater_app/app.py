@@ -39,7 +39,6 @@ def get_country_via_abbreviation(country_abb):
 
 @app.route('/best-move/<country>', methods=['POST'])
 def get_best_move(country):
-    # TODO: bug with spanish doubles, PACDEDLL and clear board, parse to list
     try:
         country = get_country_via_abbreviation(country)
         data = request.get_json()
@@ -62,7 +61,7 @@ def validate_words_in_country_dictionary(country):
         body = utils.WordValidationRequestBody()
         result = body.load(data)
         words = result['words']
-        validation_result = validate_words(words, get_trie(country))
+        validation_result = validate_words(words, get_trie(country), country)
         return jsonify(validation_result)
     except (exc.BaseCheaterException, ValidationError) as e:
         logger.debug(e)

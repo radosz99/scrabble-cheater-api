@@ -48,3 +48,29 @@ class BestMoveRequestBody(Schema):
 
 class WordValidationRequestBody(Schema):
     words = fields.List(fields.String, required=True)
+
+
+def parse_letters_string(letters, country):
+    letters = letters.lower()
+    logger.debug(f"Parsing letters string - {letters}")
+    letters_list = []
+    skip_next = False
+    for index, letter in enumerate(letters):
+        if skip_next:
+            skip_next = False
+            continue
+        if country.name == "ES" and index < len(letters) - 1:
+            letter, skip_next = check_if_contains_spanish_doubles(letters, index)
+        letters_list.append(letter)
+    logger.debug(f"Parsed letters string - {letters_list}")
+    return letters_list
+
+
+def check_if_contains_spanish_doubles(word, index):
+    word = word.lower()
+    spanish_doubles = ['ll', 'rr', 'ch']
+    if (double := word[index:index + 2]) in spanish_doubles:
+        return double, True
+    else:
+        return word[index].lower(), False
+

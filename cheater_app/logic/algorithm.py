@@ -8,13 +8,12 @@ from cheater_app.logic import exceptions as exc
 from cheater_app.logic import constants
 from cheater_app.logic.board_utilities import BoardUtilities
 from cheater_app.logger import logger
-from cheater_app.logic.trie import check_if_contains_spanish_doubles
 
 
 class Algorithm:
     def __init__(self, letters, board, country):
         self.country = country
-        self.letters = self.parse_letters_string(letters)
+        self.letters = utils.parse_letters_string(letters, country)
         self.board = board
         self.patterns = self.__get_patterns()
         self.board_utilities = BoardUtilities(country)
@@ -28,21 +27,6 @@ class Algorithm:
         for pattern in patterns:
             logger.info(pattern)
         return patterns
-
-    def parse_letters_string(self, letters):
-        letters = letters.lower()
-        logger.debug(f"Parsing letters string - {letters}")
-        letters_list = []
-        skip_next = False
-        for index, letter in enumerate(letters):
-            if skip_next:
-                skip_next = False
-                continue
-            if self.country == Country.ES and index < len(letters) - 1:
-                letter, skip_next = check_if_contains_spanish_doubles(letters, index)
-            letters_list.append(letter)
-        logger.debug(f"Parsed letters string - {letters_list}")
-        return letters_list
 
     def validate_letters_on_board(self):
         for row in self.board:
@@ -116,7 +100,7 @@ class Algorithm:
     def __check_if_word_contains_only_user_letters(self, word):
         user_letters_copy = copy.copy(self.letters)
         try:
-            #logger.debug(f"Checking if word {word} contains only user letters = {user_letters_copy}")
+            #logger.debug(f"Checking if word {word} contains only user letters = {user_letters_copy}") ## consider QueueHandler
             self.remove_items_from_list(word, user_letters_copy)
         except ValueError as e:
             raise exc.WordDoesNotMatchToPatternException(f"Word without pattern letters has some not-user letters - {str(e)}")
