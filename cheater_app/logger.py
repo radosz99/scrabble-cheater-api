@@ -25,4 +25,4 @@ file_handler.setFormatter(formatter)
 
 logger.addHandler(file_handler)
 logger.addHandler(file_handler_info)
-logger.addHandler(console_handler)
+# logger.addHandler(console_handler)
