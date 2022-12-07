@@ -16,7 +16,9 @@ class BoardUtilities:
         return utils.get_dictionary_from_file(path)
 
     def check_if_letter_valid_in_country(self, letter):
-        return letter in self.get_letters_values()
+        letters_lower = list(self.get_letters_values().keys())
+        letters_upper = [letter.upper() for letter in letters_lower]
+        return letter in letters_lower + letters_upper
 
     @staticmethod
     def get_multipliers():

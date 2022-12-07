@@ -39,6 +39,7 @@ def get_country_via_abbreviation(country_abb):
 
 @app.route('/best-move/<country>', methods=['POST'])
 def get_best_move(country):
+    # TODO: bug with spanish doubles, PACDEDLL and clear board, parse to list
     try:
         country = get_country_via_abbreviation(country)
         data = request.get_json()
