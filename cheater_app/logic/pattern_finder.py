@@ -26,7 +26,7 @@ class Pattern:
     def __eq__(self, other):
         coordinates = self._x == other.get_x() and self._y == other.get_y()
         empty_cells = self._empty_cells_on_left == other.get_empty_cells_on_left() and self._empty_cells_on_right == other.get_empty_cells_on_right()
-        letters = self._letters == other.get_letters()
+        letters = self._letters == other._letters
         orientation = self._orientation == other.get_orientation()
         return coordinates and empty_cells and letters and orientation
 
@@ -227,10 +227,7 @@ class PatternFinder:
 
     @staticmethod
     def flip_board_horizontally(board):
-        flipped_board = []
-        for line in board:
-            flipped_board.append(line[::-1])
-        return flipped_board
+        return [line[::-1] for line in board]
 
     @staticmethod
     def _get_bridge_pattern_from_pattern_and_nearest_suitable_cell_on_right(board, pattern, y_nearest):
@@ -254,7 +251,6 @@ class PatternFinder:
                 continue
             logger.debug(f"Looking for nearest matching cell for pattern = {pattern}")
             try:
-
                 y_nearest = PatternFinder._get_nearest_cell_index_on_left(pattern, board)
                 logger.debug(f"Nearest cell index on left = {y_nearest}")
                 new_pattern = PatternFinder._get_bridge_pattern_from_pattern_and_nearest_suitable_cell_on_left(board, pattern, y_nearest)

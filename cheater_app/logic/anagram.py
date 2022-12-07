@@ -5,6 +5,7 @@ from cheater_app.logger import logger
 
 # TODO: big refactor needed
 def find_anagrams(letters, trie):
+    letters = [letter.lower() for letter in letters]
     letter_counts = Counter(letters)
     logger.info(f"Letters counts = {letter_counts}, looking for anagrams")
     anagrams = anagram_engine(letter_counts, [], trie, len(letters))

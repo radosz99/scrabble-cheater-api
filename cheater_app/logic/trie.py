@@ -43,8 +43,10 @@ def create_trie_for_country(country, words=None):
 
 
 def check_if_contains_spanish_doubles(word, index):
-    if (double := word[index:index + 2]) in ['ll', 'rr', 'ch']:
+    word = word.lower()
+    spanish_doubles = ['ll', 'rr', 'ch']
+    if (double := word[index:index + 2]) in spanish_doubles:
         return double, True
     else:
-        return word[index], False
+        return word[index].lower(), False
 
