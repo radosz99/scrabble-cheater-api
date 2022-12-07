@@ -19,9 +19,9 @@ file_handler = logging.FileHandler(DEBUG_LOG_FILE, 'w+')
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(formatter)
 
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)
-console_handler.setFormatter(formatter)
+# console_handler = logging.StreamHandler()
+# console_handler.setLevel(logging.DEBUG)
+# console_handler.setFormatter(formatter)
 
 logger.addHandler(file_handler)
 logger.addHandler(file_handler_info)

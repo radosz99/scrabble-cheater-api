@@ -66,7 +66,7 @@ class Algorithm:
             logger.info(f"Board is not clear, looking for anagrams from player letters = {self.letters} and "
                         f"letters from board = {letters_from_board}")
             anagrams = find_anagrams(letters_for_anagram, trie)
-            logger.info(f"Created {len(anagrams)} anagrams = {anagrams}")
+            logger.debug(f"Created {len(anagrams)} anagrams = {anagrams}")
             return self.__get_valid_moves(anagrams)
 
     def __get_valid_moves_from_clear_board(self, anagrams):
@@ -77,6 +77,7 @@ class Algorithm:
             logger.debug(f"Created move options = {move_options}")
             moves.extend(move_options)
         logger.info(f"Found {len(moves)} words, sorting...")
+        logger.debug(f"Moves = {moves}")
         return utils.get_sorted_list_by_attribute(moves, "_points")
 
     def __get_all_possibilities_for_anagram_in_clear_board(self, anagram):
@@ -108,7 +109,8 @@ class Algorithm:
                     moves_from_word = self.__get_moves_by_word_type(pattern, word)
                     logger.debug(f"Created moves = {moves_from_word}")
                     moves.extend(moves_from_word)
-        logger.info(f"Found {len(moves)} moves")
+        logger.info(f"Found {len(moves)} words, sorting...")
+        logger.debug(f"Moves = {moves}")
         return utils.get_sorted_list_by_attribute(moves, "_points")
 
     def __check_if_word_contains_only_user_letters(self, word):
