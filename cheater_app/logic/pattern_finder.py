@@ -243,7 +243,7 @@ class PatternFinder:
             y, y_nearest = y_nearest, y
         orientation = pattern.get_orientation()
         difference = y - y_nearest
-        bridge_letters = [board[x][y_nearest], board[x][y]]
+        bridge_letters = [board[x][y_nearest].lower(), board[x][y].lower()]
         cells_on_left, cells_on_right = get_amount_of_available_cells_outside_the_bridge(x, y, y_nearest, board)
         real_x, real_y = get_real_coordinates_according_to_board_orientation(orientation, x, y_nearest)
         return Pattern(bridge_letters, real_x, real_y, cells_on_left, cells_on_right, orientation, difference)
