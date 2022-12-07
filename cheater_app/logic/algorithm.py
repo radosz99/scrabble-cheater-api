@@ -116,21 +116,21 @@ class Algorithm:
     def __check_if_word_contains_only_user_letters(self, word):
         user_letters_copy = copy.copy(self.letters)
         try:
-            logger.debug(f"Checking if word {word} contains only user letters = {user_letters_copy}")
+            #logger.debug(f"Checking if word {word} contains only user letters = {user_letters_copy}")
             self.remove_items_from_list(word, user_letters_copy)
         except ValueError as e:
             raise exc.WordDoesNotMatchToPatternException(f"Word without pattern letters has some not-user letters - {str(e)}")
 
     def __check_if_pattern_match_to_anagram(self, pattern, anagram):
         anagram_copy = copy.copy(anagram)
-        logger.debug(f"Checking if pattern = {pattern} match to word = {anagram}")
+        #logger.debug(f"Checking if pattern = {pattern} match to word = {anagram}")
         try:
             word_without_pattern_letters = self.check_if_word_has_pattern_letters(pattern, anagram_copy)
-            logger.debug(f"Word without letters from pattern = {word_without_pattern_letters}")
+            #logger.debug(f"Word without letters from pattern = {word_without_pattern_letters}")
             self.__check_if_word_contains_only_user_letters(word_without_pattern_letters)
-            logger.debug("Pattern has matched to anagram")
+            #logger.debug("Pattern has matched to anagram")
         except exc.WordDoesNotMatchToPatternException as e:
-            logger.debug(f"Word {anagram} does not match to pattern - {pattern}, cause - {str(e)}")
+            #logger.debug(f"Word {anagram} does not match to pattern - {pattern}, cause - {str(e)}")
             return False
         else:
             return True
@@ -196,7 +196,7 @@ class Algorithm:
 
     @staticmethod
     def remove_items_from_list(items, lst):
-        logger.debug(f"Removing {items} from {lst}")
+        #logger.debug(f"Removing {items} from {lst}")
         for item in items:
             lst.remove(item)
         return lst
