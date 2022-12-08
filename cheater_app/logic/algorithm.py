@@ -13,11 +13,12 @@ from cheater_app.logger import logger
 class Algorithm:
     def __init__(self, letters, board, country):
         self.country = country
-        self.letters = utils.parse_letters_string(letters, country)
+        self.letters = [letter.lower() for letter in letters]
         self.board = board
         self.patterns = self.__get_patterns()
         self.board_utilities = BoardUtilities(country)
         self.validate_letters_on_board()
+        self.validate_user_letters()
 
     def __get_patterns(self):
         logger.info(f"Looking for patterns on board: {self.get_board_string()}")
@@ -29,10 +30,17 @@ class Algorithm:
         return patterns
 
     def validate_letters_on_board(self):
-        for row in self.board:
-            for cell in row:
+        for row_index, row in enumerate(self.board):
+            for column_index, cell in enumerate(row):
                 if not self.board_utilities.check_if_letter_valid_in_country(cell) and cell != ' ':
-                    raise exc.InvalidLettersOnBoardException(f"Letter '{cell}' is not supported for country {self.country.name}")
+                    raise exc.InvalidLetterException(f"Letter '{cell}' on board ({row_index}, {column_index} "
+                                                             f"is not supported for country {self.country.name}")
+
+    def validate_user_letters(self):
+        for letter in self.letters:
+            if not self.board_utilities.check_if_letter_valid_in_country(letter):
+                raise exc.InvalidLetterException(f"Letter '{letter}' in user letters is not supported for "
+                                                         f"country {self.country.name}")
 
     def algorithm_engine(self, trie):
         logger.info("Starting algorithm engine")
@@ -107,14 +115,14 @@ class Algorithm:
 
     def __check_if_pattern_match_to_anagram(self, pattern, anagram):
         anagram_copy = copy.copy(anagram)
-        #logger.debug(f"Checking if pattern = {pattern} match to word = {anagram}")
+        # logger.debug(f"Checking if pattern = {pattern} match to word = {anagram}")
         try:
             word_without_pattern_letters = self.check_if_word_has_pattern_letters(pattern, anagram_copy)
-            #logger.debug(f"Word without letters from pattern = {word_without_pattern_letters}")
+            # logger.debug(f"Word without letters from pattern = {word_without_pattern_letters}")
             self.__check_if_word_contains_only_user_letters(word_without_pattern_letters)
-            #logger.debug("Pattern has matched to anagram")
+            # logger.debug("Pattern has matched to anagram")
         except exc.WordDoesNotMatchToPatternException as e:
-            #logger.debug(f"Word {anagram} does not match to pattern - {pattern}, cause - {str(e)}")
+            # logger.debug(f"Word {anagram} does not match to pattern - {pattern}, cause - {str(e)}")
             return False
         else:
             return True

@@ -37,7 +37,7 @@ def get_dictionary_from_file(file_path):
 
 class BestMoveRequestBody(Schema):
     board = fields.List(fields.List(fields.String), required=True)
-    letters = fields.String(required=True)
+    letters = fields.List(fields.String, required=True)
 
     @validates("board")
     def validate_length(self, row):
@@ -74,3 +74,6 @@ def check_if_contains_spanish_doubles(word, index):
     else:
         return word[index].lower(), False
 
+
+def get_clear_board():
+    return [[' ' for x in range(BOARD_SIZE)] for y in range(BOARD_SIZE)]

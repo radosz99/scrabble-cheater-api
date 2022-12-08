@@ -11,7 +11,7 @@ class NotSupportedCountryException(BaseCheaterException):
     pass
 
 
-class InvalidLettersOnBoardException(BaseCheaterException):
+class InvalidLetterException(BaseCheaterException):
     pass
 
 
