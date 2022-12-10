@@ -5,6 +5,8 @@ __pycache__/
 
 *.log
 sandbox.py
+total.txt
+with_accents.txt
 # C extensions
 *.so
 
