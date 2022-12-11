@@ -9,16 +9,16 @@ class BoardUtilities:
 
     def _initialize_data(self):
         self._word_multipliers, self._letter_multipliers = BoardUtilities.get_multipliers()
-        self._letters_values = self.get_letters_values()
+        self._letters_values = {}
+        for key, value in self.get_letters_values().items():
+            self._letters_values[key.upper()] = value
 
     def get_letters_values(self):
         path = f"{RESOURCES_PATH}/{self.country.name.lower()}/letters_values.txt"
         return utils.get_dictionary_from_file(path)
 
     def check_if_letter_valid_in_country(self, letter):
-        letters_lower = list(self.get_letters_values().keys())
-        letters_upper = [letter.upper() for letter in letters_lower]
-        return letter in letters_lower + letters_upper
+        return letter.upper() in self._letters_values
 
     @staticmethod
     def get_multipliers():
@@ -33,10 +33,10 @@ class BoardUtilities:
         return self._word_multipliers[x][y]
 
     def get_letter_value(self, char):
-        return self._letters_values[char]
+        return self._letters_values[char.upper()]
 
     def evaluate_letter_value(self, letter):
-        letter_value = self.get_letter_value(letter.get_char())
+        letter_value = self.get_letter_value(letter.get_char().upper())
         if letter.is_user_letter():
             letter_multiplier = self.get_field_letter_multiplier(letter.get_x(), letter.get_y())
         else:

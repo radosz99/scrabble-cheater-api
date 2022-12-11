@@ -17,6 +17,8 @@ class Country(Enum):
     PL = 1
     GB = 2
     ES = 3
+    DE = 4
+    FR = 5
 
 
 class Letter:

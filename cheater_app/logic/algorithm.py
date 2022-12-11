@@ -188,7 +188,6 @@ class Algorithm:
 
     @staticmethod
     def remove_items_from_list(items, lst):
-        #logger.debug(f"Removing {items} from {lst}")
         for item in items:
             lst.remove(item)
         return lst
